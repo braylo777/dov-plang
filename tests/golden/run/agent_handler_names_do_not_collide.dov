@@ -1,0 +1,16 @@
+agent A_b {
+    on c() {
+        print("A_b.c");
+    }
+}
+
+agent A {
+    on b_c() {
+        print("A.b_c");
+    }
+}
+
+fn main() {
+    send spawn A_b.c();
+    send spawn A.b_c();
+}

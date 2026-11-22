@@ -43,6 +43,12 @@ pub fn c_str(s: &str) -> String {
     out
 }
 
+/// Unique C tag for handler `h` of agent `a`. The agent name is length-prefixed so
+/// `A_b` + `c` and `A` + `b_c` cannot collide (both would be `A_b_c`).
+fn htag(a: &str, h: &str) -> String {
+    format!("{}{a}_{h}", a.len())
+}
+
 struct Gen<'a> {
     types: &'a Types,
     out: String,
@@ -163,9 +169,8 @@ impl<'a> Gen<'a> {
             for h in &a.handlers {
                 let selfp = format!("dov_agent_{} *self", a.name);
                 self.line(&format!(
-                    "DOV_UNUSED static void dov_on_{}_{}({});",
-                    a.name,
-                    h.name,
+                    "DOV_UNUSED static void dov_on_{}({});",
+                    htag(&a.name, &h.name),
                     Self::params(&h.params, &selfp)
                 ));
             }
@@ -175,7 +180,7 @@ impl<'a> Gen<'a> {
         // Message structs, trampolines and spawn functions.
         for a in &agents {
             for h in &a.handlers {
-                let tag = format!("{}_{}", a.name, h.name);
+                let tag = htag(&a.name, &h.name);
                 if !h.params.is_empty() {
                     self.line("typedef struct {");
                     for (i, p) in h.params.iter().enumerate() {
@@ -249,9 +254,8 @@ impl<'a> Gen<'a> {
                 self.locals = vec![h.params.iter().map(|p| p.name.clone()).collect()];
                 let selfp = format!("dov_agent_{} *self", a.name);
                 self.line(&format!(
-                    "static void dov_on_{}_{}({}) {{",
-                    a.name,
-                    h.name,
+                    "static void dov_on_{}({}) {{",
+                    htag(&a.name, &h.name),
                     Self::params(&h.params, &selfp)
                 ));
                 self.indent = 1;
@@ -346,7 +350,7 @@ impl<'a> Gen<'a> {
                 let Type::Agent(a) = &self.types[&target.pos] else {
                     unreachable!("checked")
                 };
-                let tag = format!("{a}_{handler}");
+                let tag = htag(a, handler);
                 let t = self.expr(target);
                 self.line("{");
                 if args.is_empty() {

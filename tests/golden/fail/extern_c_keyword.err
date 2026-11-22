@@ -1,0 +1,5 @@
+tests/golden/fail/extern_c_keyword.dov:1:1: error: extern name `int` is a C keyword
+  |
+1 | extern "C" fn int() -> i64;
+  | ^
+  = hint: extern names are emitted as-is into C; a C keyword cannot name a function

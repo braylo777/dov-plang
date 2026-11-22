@@ -9,6 +9,18 @@ use std::collections::HashMap;
 
 pub type Types = HashMap<Pos, Type>;
 
+/// C11 keywords (plus the C23 ones compilers already reserve). `extern "C"` names are
+/// emitted unprefixed, so these cannot be used for them.
+const C_KEYWORDS: &[&str] = &[
+    "auto", "break", "case", "char", "const", "continue", "default", "do", "double", "else",
+    "enum", "extern", "float", "for", "goto", "if", "inline", "int", "long", "register",
+    "restrict", "return", "short", "signed", "sizeof", "static", "struct", "switch",
+    "typedef", "union", "unsigned", "void", "volatile", "while", "_Alignas", "_Alignof",
+    "_Atomic", "_Bool", "_Complex", "_Generic", "_Imaginary", "_Noreturn", "_Static_assert",
+    "_Thread_local", "alignas", "alignof", "constexpr", "nullptr", "static_assert",
+    "thread_local", "typeof", "typeof_unqual",
+];
+
 struct FnSig {
     params: Vec<Type>,
     ret: Type,
@@ -147,6 +159,13 @@ impl<'a> Checker<'a> {
                     );
                 }
                 Item::Extern(e) => {
+                    if C_KEYWORDS.contains(&e.name.as_str()) {
+                        return Err(Diag::new(
+                            e.pos,
+                            format!("extern name `{}` is a C keyword", e.name),
+                            "extern names are emitted as-is into C; a C keyword cannot name a function",
+                        ));
+                    }
                     if e.name.starts_with("dov_") || e.name == "main" {
                         return Err(Diag::new(
                             e.pos,
