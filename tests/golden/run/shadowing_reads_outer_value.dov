@@ -1,0 +1,30 @@
+fn f(a: i64) -> i64 {
+    let a = a * 2;
+    var b = a;
+    if true {
+        let b = b + 1;
+        let a = b + a;
+        print("inner a = ", a, ", b = ", b);
+    }
+    b = b + 100;
+    return a + b;
+}
+
+agent A {
+    var n = 5;
+
+    on h(n: i64) {
+        let n = n + 1;
+        print("handler n = ", n);
+    }
+}
+
+fn main() {
+    let x = 1;
+    if true {
+        let x = x + 10;
+        print("x = ", x);
+    }
+    print("f = ", f(3));
+    send spawn A.h(7);
+}

@@ -2,7 +2,7 @@
 
 use crate::ast::*;
 use crate::check::Types;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::fmt::Write;
 
 /// C type for `extern "C"` prototypes: i64 maps to C `long` (LP64 targets, checked
@@ -52,7 +52,10 @@ fn htag(a: &str, h: &str) -> String {
 struct Gen<'a> {
     types: &'a Types,
     out: String,
-    locals: Vec<HashSet<String>>,
+    /// Scopes of locals: .dov name -> C name.
+    locals: Vec<HashMap<String, String>>,
+    /// Counter for C names of shadowing bindings.
+    shadow: usize,
     in_handler: bool,
     indent: usize,
     user_fns: HashSet<String>,
@@ -74,6 +77,7 @@ pub fn generate(prog: &Program, types: &Types) -> String {
         types,
         out: String::new(),
         locals: Vec::new(),
+        shadow: 0,
         in_handler: false,
         indent: 0,
         user_fns,
@@ -214,7 +218,7 @@ impl<'a> Gen<'a> {
                 "    dov_agent_{0} *self = (dov_agent_{0} *)dov_alloc(sizeof *self);",
                 a.name
             ));
-            self.locals = vec![HashSet::new()];
+            self.locals = vec![HashMap::new()];
             self.in_handler = false;
             for f in &a.fields {
                 let v = self.expr(&f.init);
@@ -227,7 +231,7 @@ impl<'a> Gen<'a> {
 
         for f in &fns {
             self.in_handler = false;
-            self.locals = vec![f.params.iter().map(|p| p.name.clone()).collect()];
+            self.locals = vec![Self::param_scope(&f.params)];
             self.line(&format!(
                 "static {} dov_fn_{}({}) {{",
                 c_ty(&f.ret),
@@ -251,7 +255,7 @@ impl<'a> Gen<'a> {
         for a in &agents {
             for h in &a.handlers {
                 self.in_handler = true;
-                self.locals = vec![h.params.iter().map(|p| p.name.clone()).collect()];
+                self.locals = vec![Self::param_scope(&h.params)];
                 let selfp = format!("dov_agent_{} *self", a.name);
                 self.line(&format!(
                     "static void dov_on_{}({}) {{",
@@ -283,7 +287,7 @@ impl<'a> Gen<'a> {
     }
 
     fn block(&mut self, b: &Block) {
-        self.locals.push(HashSet::new());
+        self.locals.push(HashMap::new());
         self.indent += 1;
         self.stmts(b);
         self.indent -= 1;
@@ -300,16 +304,25 @@ impl<'a> Gen<'a> {
             } => {
                 let t = c_ty(&self.types[&init.pos]);
                 let v = self.expr(init);
+                // A shadowing binding gets its own C name. In C the new name is already in
+                // scope inside its own initializer, so `let x = x + 1;` would read itself.
+                // `v<N>_x` cannot clash with a user name, which is always `v_<name>`.
+                let cname = if self.locals.iter().any(|s| s.contains_key(name)) {
+                    self.shadow += 1;
+                    format!("v{}_{name}", self.shadow)
+                } else {
+                    format!("v_{name}")
+                };
                 // `let` becomes a C const (pointer types: const pointer).
                 let decl = match (*mutable, t.ends_with('*')) {
-                    (true, _) => format!("{t} v_{name}"),
-                    (false, true) => format!("{t}const v_{name}"),
-                    (false, false) => format!("const {t} v_{name}"),
+                    (true, _) => format!("{t} {cname}"),
+                    (false, true) => format!("{t}const {cname}"),
+                    (false, false) => format!("const {t} {cname}"),
                 };
                 self.line(&format!("{decl} = {v};"));
                 // An unused binding is legal .dov; keep strict C (-Wunused-variable) quiet.
-                self.line(&format!("(void)v_{name};"));
-                self.locals.last_mut().unwrap().insert(name.clone());
+                self.line(&format!("(void){cname};"));
+                self.locals.last_mut().unwrap().insert(name.clone(), cname);
             }
             StmtKind::Assign { name, value } => {
                 let target = self.var(name);
@@ -390,9 +403,16 @@ impl<'a> Gen<'a> {
         c
     }
 
+    fn param_scope(ps: &[Param]) -> HashMap<String, String> {
+        ps.iter()
+            .map(|p| (p.name.clone(), format!("v_{}", p.name)))
+            .collect()
+    }
+
     fn var(&self, name: &str) -> String {
-        let local = self.locals.iter().any(|s| s.contains(name));
-        if !local && self.in_handler {
+        if let Some(c) = self.locals.iter().rev().find_map(|s| s.get(name)) {
+            c.clone()
+        } else if self.in_handler {
             format!("self->f_{name}")
         } else {
             format!("v_{name}")
