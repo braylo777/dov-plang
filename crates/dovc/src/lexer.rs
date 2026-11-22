@@ -54,6 +54,101 @@ pub enum Tok {
 pub struct Token {
     pub tok: Tok,
     pub pos: Pos,
+    /// Length in source characters (tokens never span lines).
+    pub len: u32,
+}
+
+/// A `// ...` line comment. `text` starts with `//` and has no trailing whitespace.
+#[derive(Debug, Clone, PartialEq)]
+pub struct Comment {
+    pub text: String,
+    pub pos: Pos,
+}
+
+/// The source spelling of a token (used by `dovc fmt` and in messages).
+pub fn spell(t: &Tok) -> String {
+    match t {
+        Tok::Int(v) => v.to_string(),
+        Tok::Str(s) => quote(s),
+        Tok::Ident(s) => s.clone(),
+        Tok::Fn => "fn".into(),
+        Tok::Let => "let".into(),
+        Tok::Var => "var".into(),
+        Tok::If => "if".into(),
+        Tok::Else => "else".into(),
+        Tok::While => "while".into(),
+        Tok::Return => "return".into(),
+        Tok::Agent => "agent".into(),
+        Tok::On => "on".into(),
+        Tok::Spawn => "spawn".into(),
+        Tok::Send => "send".into(),
+        Tok::Extern => "extern".into(),
+        Tok::True => "true".into(),
+        Tok::False => "false".into(),
+        Tok::LParen => "(".into(),
+        Tok::RParen => ")".into(),
+        Tok::LBrace => "{".into(),
+        Tok::RBrace => "}".into(),
+        Tok::Comma => ",".into(),
+        Tok::Semi => ";".into(),
+        Tok::Colon => ":".into(),
+        Tok::Dot => ".".into(),
+        Tok::Arrow => "->".into(),
+        Tok::Assign => "=".into(),
+        Tok::Plus => "+".into(),
+        Tok::Minus => "-".into(),
+        Tok::Star => "*".into(),
+        Tok::Slash => "/".into(),
+        Tok::Percent => "%".into(),
+        Tok::Eq => "==".into(),
+        Tok::Ne => "!=".into(),
+        Tok::Lt => "<".into(),
+        Tok::Le => "<=".into(),
+        Tok::Gt => ">".into(),
+        Tok::Ge => ">=".into(),
+        Tok::AndAnd => "&&".into(),
+        Tok::OrOr => "||".into(),
+        Tok::Bang => "!".into(),
+        Tok::Eof => "".into(),
+    }
+}
+
+/// Quote a string as a `.dov` literal (inverse of the lexer's escapes).
+pub fn quote(s: &str) -> String {
+    let mut out = String::from("\"");
+    for c in s.chars() {
+        match c {
+            '"' => out.push_str("\\\""),
+            '\\' => out.push_str("\\\\"),
+            '\n' => out.push_str("\\n"),
+            '\t' => out.push_str("\\t"),
+            '\0' => out.push_str("\\0"),
+            other => out.push(other),
+        }
+    }
+    out.push('"');
+    out
+}
+
+/// Is `t` a keyword (so it cannot be used as a name)?
+pub fn is_keyword(t: &Tok) -> bool {
+    matches!(
+        t,
+        Tok::Fn
+            | Tok::Let
+            | Tok::Var
+            | Tok::If
+            | Tok::Else
+            | Tok::While
+            | Tok::Return
+            | Tok::Agent
+            | Tok::On
+            | Tok::Spawn
+            | Tok::Send
+            | Tok::Extern
+            | Tok::True
+            | Tok::False
+    )
 }
 
 fn keyword(s: &str) -> Option<Tok> {
@@ -77,8 +172,14 @@ fn keyword(s: &str) -> Option<Tok> {
 }
 
 pub fn lex(src: &str) -> Result<Vec<Token>> {
+    Ok(lex_with_comments(src)?.0)
+}
+
+/// Lex and also keep the line comments (for the formatter).
+pub fn lex_with_comments(src: &str) -> Result<(Vec<Token>, Vec<Comment>)> {
     let chars: Vec<char> = src.chars().collect();
     let mut out = Vec::new();
+    let mut comments = Vec::new();
     let (mut i, mut line, mut col) = (0usize, 1u32, 1u32);
 
     macro_rules! bump {
@@ -98,15 +199,21 @@ pub fn lex(src: &str) -> Result<Vec<Token>> {
     while i < chars.len() {
         let c = chars[i];
         let pos = Pos { line, col };
+        let start = i;
         if c.is_whitespace() {
             bump!();
             continue;
         }
         // line comment
         if c == '/' && chars.get(i + 1) == Some(&'/') {
+            let mut text = String::new();
             while i < chars.len() && chars[i] != '\n' {
-                bump!();
+                text.push(bump!());
             }
+            comments.push(Comment {
+                text: text.trim_end().to_string(),
+                pos,
+            });
             continue;
         }
         if c.is_ascii_digit() {
@@ -118,21 +225,30 @@ pub fn lex(src: &str) -> Result<Vec<Token>> {
                 }
             }
             let v: i64 = s.parse().map_err(|_| {
-                Diag::new(pos, format!("integer literal `{s}` does not fit in i64"))
+                Diag::new(
+                    pos,
+                    format!("integer literal `{s}` does not fit in i64"),
+                    "i64 holds -9223372036854775808 to 9223372036854775807; write the minimum as `-9223372036854775807 - 1`",
+                )
             })?;
             out.push(Token {
                 tok: Tok::Int(v),
                 pos,
+                len: (i - start) as u32,
             });
             continue;
         }
-        if c.is_alphabetic() || c == '_' {
+        if c.is_ascii_alphabetic() || c == '_' {
             let mut s = String::new();
-            while i < chars.len() && (chars[i].is_alphanumeric() || chars[i] == '_') {
+            while i < chars.len() && (chars[i].is_ascii_alphanumeric() || chars[i] == '_') {
                 s.push(bump!());
             }
             let tok = keyword(&s).unwrap_or(Tok::Ident(s));
-            out.push(Token { tok, pos });
+            out.push(Token {
+                tok,
+                pos,
+                len: (i - start) as u32,
+            });
             continue;
         }
         if c == '"' {
@@ -140,14 +256,22 @@ pub fn lex(src: &str) -> Result<Vec<Token>> {
             let mut s = String::new();
             loop {
                 if i >= chars.len() || chars[i] == '\n' {
-                    return Err(Diag::new(pos, "unterminated string literal"));
+                    return Err(Diag::new(
+                        pos,
+                        "unterminated string literal",
+                        "close the string with `\"` on the same line; use `\\n` for a newline",
+                    ));
                 }
                 let ch = bump!();
                 match ch {
                     '"' => break,
                     '\\' => {
                         if i >= chars.len() {
-                            return Err(Diag::new(pos, "unterminated string literal"));
+                            return Err(Diag::new(
+                                pos,
+                                "unterminated string literal",
+                                "close the string with `\"` on the same line",
+                            ));
                         }
                         let e = bump!();
                         s.push(match e {
@@ -160,6 +284,7 @@ pub fn lex(src: &str) -> Result<Vec<Token>> {
                                 return Err(Diag::new(
                                     Pos { line, col: col - 1 },
                                     format!("unknown escape `\\{other}`"),
+                                    "valid escapes are \\n \\t \\\\ \\\" and \\0",
                                 ))
                             }
                         });
@@ -170,6 +295,7 @@ pub fn lex(src: &str) -> Result<Vec<Token>> {
             out.push(Token {
                 tok: Tok::Str(s),
                 pos,
+                len: (i - start) as u32,
             });
             continue;
         }
@@ -199,18 +325,32 @@ pub fn lex(src: &str) -> Result<Vec<Token>> {
             ('<', _) => (Tok::Lt, 1),
             ('>', _) => (Tok::Gt, 1),
             ('!', _) => (Tok::Bang, 1),
-            _ => return Err(Diag::new(pos, format!("unexpected character `{c}`"))),
+            _ => {
+                let hint = if c.is_alphabetic() {
+                    "names use ASCII letters, digits and `_` only (non-ASCII text belongs in strings)"
+                } else if c == '&' || c == '|' {
+                    "logical operators are `&&` and `||`; there are no bitwise operators in v0"
+                } else {
+                    "remove this character; it is not part of .dov syntax"
+                };
+                return Err(Diag::new(pos, format!("unexpected character `{c}`"), hint));
+            }
         };
         for _ in 0..len {
             bump!();
         }
-        out.push(Token { tok, pos });
+        out.push(Token {
+            tok,
+            pos,
+            len: len as u32,
+        });
     }
     out.push(Token {
         tok: Tok::Eof,
         pos: Pos { line, col },
+        len: 0,
     });
-    Ok(out)
+    Ok((out, comments))
 }
 
 #[cfg(test)]

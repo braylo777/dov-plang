@@ -6,6 +6,7 @@ pub mod ast;
 pub mod check;
 pub mod codegen;
 pub mod diag;
+pub mod fmt;
 pub mod lexer;
 pub mod parser;
 
@@ -30,9 +31,9 @@ pub fn compile_to_c(src: &str) -> diag::Result<String> {
 }
 
 /// Compile `.dov` source to a native binary at `out` with the system C compiler.
-/// Errors are rendered as `file:line:col: error: msg`.
+/// Errors are rendered with `Diag::render` (position, source line, caret, hint).
 pub fn build(src: &str, file: &str, out: &Path) -> Result<(), String> {
-    let c = compile_to_c(src).map_err(|d| d.render(file))?;
+    let c = compile_to_c(src).map_err(|d| d.render(file, src))?;
     let dir = scratch_dir()?;
     let w = |name: &str, body: &str| -> Result<PathBuf, String> {
         let p = dir.join(name);

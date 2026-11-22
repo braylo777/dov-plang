@@ -4,7 +4,7 @@
 //! Every expression starts at a distinct token, so the position is a unique key.
 
 use crate::ast::*;
-use crate::diag::{Diag, Pos, Result};
+use crate::diag::{closest, Diag, Pos, Result};
 use std::collections::HashMap;
 
 pub type Types = HashMap<Pos, Type>;
@@ -28,7 +28,8 @@ enum Ctx<'a> {
 struct Checker<'a> {
     fns: HashMap<String, FnSig>,
     agents: HashMap<String, AgentSig>,
-    scopes: Vec<HashMap<String, (Type, bool)>>,
+    /// name -> (type, mutable, is_parameter)
+    scopes: Vec<HashMap<String, (Type, bool, bool)>>,
     ctx: Ctx<'a>,
     ret: Type,
     types: Types,
@@ -63,7 +64,12 @@ impl<'a> Checker<'a> {
     fn known_type(&self, t: &Type, pos: Pos) -> Result<()> {
         if let Type::Agent(n) = t {
             if !self.agents.contains_key(n) {
-                return Err(Diag::new(pos, format!("unknown type `{n}`")));
+                let names = self.agents.keys().map(|s| s.as_str());
+                let hint = match closest(n, names.chain(["i64", "bool", "str"])) {
+                    Some(c) => format!("did you mean `{c}`?"),
+                    None => "types are `i64`, `bool`, `str`, `()` or an agent name".into(),
+                };
+                return Err(Diag::new(pos, format!("unknown type `{n}`"), hint));
             }
         }
         Ok(())
@@ -81,15 +87,21 @@ impl<'a> Checker<'a> {
                 return Err(Diag::new(
                     pos,
                     "`print` is a built-in and cannot be redefined",
+                    "choose another name, e.g. `show`",
                 ));
             }
             if matches!(name, "i64" | "bool" | "str") {
-                return Err(Diag::new(pos, format!("`{name}` is a built-in type name")));
+                return Err(Diag::new(
+                    pos,
+                    format!("`{name}` is a built-in type name"),
+                    "choose another name for this declaration",
+                ));
             }
             if let Some(prev) = seen.insert(name, pos) {
                 return Err(Diag::new(
                     pos,
                     format!("`{name}` is already defined at {}:{}", prev.line, prev.col),
+                    "functions, externs and agents share one namespace; rename one of them",
                 ));
             }
         }
@@ -111,7 +123,11 @@ impl<'a> Checker<'a> {
                     for p in &f.params {
                         self.known_type(&p.ty, p.pos)?;
                         if p.ty == Type::Unit {
-                            return Err(Diag::new(p.pos, "parameters cannot have type `()`"));
+                            return Err(Diag::new(
+                                p.pos,
+                                "parameters cannot have type `()`",
+                                "remove the parameter; `()` carries no value",
+                            ));
                         }
                     }
                     self.known_type(&f.ret, f.pos)?;
@@ -119,6 +135,7 @@ impl<'a> Checker<'a> {
                         return Err(Diag::new(
                             f.pos,
                             "`main` takes no parameters and returns `()`",
+                            "declare it as `fn main() { ... }`",
                         ));
                     }
                     self.fns.insert(
@@ -134,6 +151,7 @@ impl<'a> Checker<'a> {
                         return Err(Diag::new(
                             e.pos,
                             format!("extern name `{}` is reserved", e.name),
+                            "`main` and names that start with `dov_` belong to the compiler and runtime",
                         ));
                     }
                     for p in &e.params {
@@ -144,6 +162,7 @@ impl<'a> Checker<'a> {
                                     "extern \"C\" parameters must be i64, bool or str, not `{}`",
                                     p.ty
                                 ),
+                                "C maps i64 to `long`, bool to `bool`, str to `const char *`; agent handles stay inside .dov",
                             ));
                         }
                     }
@@ -151,6 +170,7 @@ impl<'a> Checker<'a> {
                         return Err(Diag::new(
                             e.pos,
                             "extern \"C\" functions cannot return agent handles",
+                            "return i64, bool, str or `()` from C",
                         ));
                     }
                     self.fns.insert(
@@ -168,6 +188,7 @@ impl<'a> Checker<'a> {
             return Err(Diag::new(
                 Pos { line: 1, col: 1 },
                 "program has no `fn main()`",
+                "add `fn main() { ... }`; the program starts there",
             ));
         }
         // Agent fields and handler signatures.
@@ -188,24 +209,44 @@ impl<'a> Checker<'a> {
                                     "field `{}` is declared `{ann}` but its value is `{t}`",
                                     f.name
                                 ),
+                                format!("change the annotation to `{t}`, or give it a value of type `{ann}`"),
                             ));
                         }
                     }
                     if t == Type::Unit {
-                        return Err(Diag::new(f.pos, "fields cannot have type `()`"));
+                        return Err(Diag::new(
+                            f.pos,
+                            "fields cannot have type `()`",
+                            "a field needs a value of type i64, bool, str or an agent handle",
+                        ));
                     }
                     if fields.insert(f.name.clone(), (t, f.mutable)).is_some() {
-                        return Err(Diag::new(f.pos, format!("duplicate field `{}`", f.name)));
+                        return Err(Diag::new(
+                            f.pos,
+                            format!("duplicate field `{}`", f.name),
+                            "each field in an agent needs its own name",
+                        ));
                     }
                 }
                 let mut handlers = HashMap::new();
                 for h in &a.handlers {
                     for p in &h.params {
                         self.known_type(&p.ty, p.pos)?;
+                        if p.ty == Type::Unit {
+                            return Err(Diag::new(
+                                p.pos,
+                                "parameters cannot have type `()`",
+                                "remove the parameter; `()` carries no value",
+                            ));
+                        }
                     }
                     let tys = h.params.iter().map(|p| p.ty.clone()).collect();
                     if handlers.insert(h.name.clone(), tys).is_some() {
-                        return Err(Diag::new(h.pos, format!("duplicate handler `{}`", h.name)));
+                        return Err(Diag::new(
+                            h.pos,
+                            format!("duplicate handler `{}`", h.name),
+                            "each handler in an agent needs its own name; there is no overloading",
+                        ));
                     }
                 }
                 let sig = self.agents.get_mut(&a.name).unwrap();
@@ -232,6 +273,7 @@ impl<'a> Checker<'a> {
                                 "function `{}` must return `{}` on every path",
                                 f.name, f.ret
                             ),
+                            "end the body with `return <value>;` or return in both `if`/`else` branches",
                         ));
                     }
                 }
@@ -254,6 +296,7 @@ impl<'a> Checker<'a> {
         for p in ps {
             // Parameters are immutable bindings.
             self.declare(&p.name, p.ty.clone(), false, p.pos)?;
+            self.scopes.last_mut().unwrap().get_mut(&p.name).unwrap().2 = true;
         }
         Ok(())
     }
@@ -264,25 +307,43 @@ impl<'a> Checker<'a> {
             return Err(Diag::new(
                 pos,
                 format!("`{name}` is already declared in this scope"),
+                "use a new name, or declare it with `var` once and assign to it",
             ));
         }
-        scope.insert(name.to_string(), (t, mutable));
+        scope.insert(name.to_string(), (t, mutable, false));
         Ok(())
     }
 
-    /// Returns (type, mutable, is_field).
-    fn lookup(&self, name: &str) -> Option<(Type, bool, bool)> {
+    /// Returns (type, mutable, what) where `what` is "binding", "parameter" or "field".
+    fn lookup(&self, name: &str) -> Option<(Type, bool, &'static str)> {
         for s in self.scopes.iter().rev() {
-            if let Some((t, m)) = s.get(name) {
-                return Some((t.clone(), *m, false));
+            if let Some((t, m, is_param)) = s.get(name) {
+                let what = if *is_param { "parameter" } else { "binding" };
+                return Some((t.clone(), *m, what));
             }
         }
         if let Ctx::Handler(a) = self.ctx {
             if let Some((t, m)) = self.agents[a].fields.get(name) {
-                return Some((t.clone(), *m, true));
+                return Some((t.clone(), *m, "field"));
             }
         }
         None
+    }
+
+    fn unknown_var(&self, name: &str, pos: Pos) -> Diag {
+        let mut names: Vec<&str> = self
+            .scopes
+            .iter()
+            .flat_map(|s| s.keys().map(|k| k.as_str()))
+            .collect();
+        if let Ctx::Handler(a) = self.ctx {
+            names.extend(self.agents[a].fields.keys().map(|k| k.as_str()));
+        }
+        let hint = match closest(name, names) {
+            Some(c) => format!("did you mean `{c}`?"),
+            None => format!("declare it first with `let {name} = ...;`"),
+        };
+        Diag::new(pos, format!("unknown variable `{name}`"), hint)
     }
 
     fn block(&mut self, b: &Block) -> Result<()> {
@@ -295,11 +356,21 @@ impl<'a> Checker<'a> {
     }
 
     fn expect(&mut self, e: &Expr, want: &Type, what: &str) -> Result<()> {
+        self.expect_h(
+            e,
+            want,
+            what,
+            "there are no implicit conversions; change the value to the expected type",
+        )
+    }
+
+    fn expect_h(&mut self, e: &Expr, want: &Type, what: &str, hint: &str) -> Result<()> {
         let got = self.expr(e)?;
         if got != *want {
             return Err(Diag::new(
                 e.pos,
                 format!("{what}: expected `{want}`, found `{got}`"),
+                hint,
             ));
         }
         Ok(())
@@ -320,6 +391,7 @@ impl<'a> Checker<'a> {
                         return Err(Diag::new(
                             init.pos,
                             format!("`{name}` is declared `{ann}` but its value is `{t}`"),
+                            format!("change the annotation to `{t}`, or give it a value of type `{ann}`"),
                         ));
                     }
                 }
@@ -327,32 +399,38 @@ impl<'a> Checker<'a> {
                     return Err(Diag::new(
                         init.pos,
                         format!("cannot bind `{name}` to a `()` value"),
+                        "call it as a statement instead, e.g. `print(...);`",
                     ));
                 }
                 self.declare(name, t, *mutable, s.pos)?;
             }
             StmtKind::Assign { name, value } => {
-                let (t, mutable, is_field) = self
+                let (t, mutable, what) = self
                     .lookup(name)
-                    .ok_or_else(|| Diag::new(s.pos, format!("unknown variable `{name}`")))?;
+                    .ok_or_else(|| self.unknown_var(name, s.pos))?;
                 if !mutable {
-                    let what = if is_field { "field" } else { "binding" };
+                    let hint = match what {
+                        "parameter" => format!("parameters are immutable; copy it first: `var {name}2 = {name};`"),
+                        "field" => format!("declare the field with `var {name}` to allow mutation"),
+                        _ => format!("declare it with `var {name}` instead of `let {name}` to allow mutation"),
+                    };
                     return Err(Diag::new(
                         s.pos,
-                        format!("cannot assign to immutable {what} `{name}`; declare it with `var` to allow mutation"),
+                        format!("cannot assign to immutable {what} `{name}`"),
+                        hint,
                     ));
                 }
                 self.expect(value, &t, &format!("assignment to `{name}`"))?;
             }
             StmtKind::If { cond, then, els } => {
-                self.expect(cond, &Type::Bool, "`if` condition")?;
+                self.expect_h(cond, &Type::Bool, "`if` condition", "conditions must be `bool`; compare explicitly, e.g. `n != 0`")?;
                 self.block(then)?;
                 if let Some(e) = els {
                     self.block(e)?;
                 }
             }
             StmtKind::While { cond, body } => {
-                self.expect(cond, &Type::Bool, "`while` condition")?;
+                self.expect_h(cond, &Type::Bool, "`while` condition", "conditions must be `bool`; compare explicitly, e.g. `n != 0`")?;
                 self.block(body)?;
             }
             StmtKind::Return(v) => {
@@ -360,7 +438,19 @@ impl<'a> Checker<'a> {
                 match v {
                     None if ret == Type::Unit => {}
                     None => {
-                        return Err(Diag::new(s.pos, format!("`return` needs a `{ret}` value")))
+                        return Err(Diag::new(
+                            s.pos,
+                            format!("`return` needs a `{ret}` value"),
+                            format!("write `return <{ret} value>;`"),
+                        ))
+                    }
+                    Some(e) if ret == Type::Unit => {
+                        let hint = if matches!(self.ctx, Ctx::Handler(_)) {
+                            "handlers return nothing; write `return;`"
+                        } else {
+                            "this function returns `()`: write `return;`, or declare a return type such as `-> i64`"
+                        };
+                        self.expect_h(e, &ret, "return value", hint)?
                     }
                     Some(e) => self.expect(e, &ret, "return value")?,
                 }
@@ -371,6 +461,7 @@ impl<'a> Checker<'a> {
             StmtKind::Send {
                 target,
                 handler,
+                handler_pos,
                 args,
             } => {
                 let t = self.expr(target)?;
@@ -378,16 +469,23 @@ impl<'a> Checker<'a> {
                     return Err(Diag::new(
                         target.pos,
                         format!("`send` needs an agent handle, found `{t}`"),
+                        "get a handle with `let h = spawn AgentName;`, then `send h.handler(...);`",
                     ));
                 };
-                let params = self.agents[&a]
-                    .handlers
-                    .get(handler)
-                    .cloned()
-                    .ok_or_else(|| {
-                        Diag::new(s.pos, format!("agent `{a}` has no handler `{handler}`"))
-                    })?;
-                self.args(args, &params, &format!("{a}.{handler}"), s.pos)?;
+                let hs = &self.agents[&a].handlers;
+                let params = hs.get(handler).cloned().ok_or_else(|| {
+                    let hint = match closest(handler, hs.keys().map(|k| k.as_str())) {
+                        Some(c) => format!("did you mean `{c}`?"),
+                        None if hs.is_empty() => format!("`{a}` has no handlers; add `on {handler}(...) {{ ... }}`"),
+                        None => {
+                            let mut names: Vec<&str> = hs.keys().map(|k| k.as_str()).collect();
+                            names.sort();
+                            format!("`{a}` handles: {}", names.join(", "))
+                        }
+                    };
+                    Diag::new(*handler_pos, format!("agent `{a}` has no handler `{handler}`"), hint)
+                })?;
+                self.args(args, &params, &format!("{a}.{handler}"), *handler_pos)?;
             }
         }
         Ok(())
@@ -395,13 +493,15 @@ impl<'a> Checker<'a> {
 
     fn args(&mut self, args: &[Expr], params: &[Type], what: &str, pos: Pos) -> Result<()> {
         if args.len() != params.len() {
+            let list: Vec<String> = params.iter().map(|t| t.to_string()).collect();
             return Err(Diag::new(
                 pos,
                 format!(
-                    "`{what}` takes {} argument(s), but {} were given",
+                    "`{what}` takes {} argument(s) but got {}",
                     params.len(),
                     args.len()
                 ),
+                format!("expected `{what}({})`", list.join(", ")),
             ));
         }
         for (i, (a, p)) in args.iter().zip(params).enumerate() {
@@ -415,35 +515,39 @@ impl<'a> Checker<'a> {
             ExprKind::Int(_) => Type::I64,
             ExprKind::Bool(_) => Type::Bool,
             ExprKind::Str(_) => Type::Str,
-            ExprKind::Var(n) => {
-                self.lookup(n)
-                    .ok_or_else(|| Diag::new(e.pos, format!("unknown variable `{n}`")))?
-                    .0
-            }
+            ExprKind::Var(n) => self.lookup(n).ok_or_else(|| self.unknown_var(n, e.pos))?.0,
             ExprKind::Unary(UnOp::Neg, x) => {
-                self.expect(x, &Type::I64, "operand of `-`")?;
+                self.expect_h(x, &Type::I64, "operand of `-`", "unary `-` takes an i64")?;
                 Type::I64
             }
             ExprKind::Unary(UnOp::Not, x) => {
-                self.expect(x, &Type::Bool, "operand of `!`")?;
+                self.expect_h(
+                    x,
+                    &Type::Bool,
+                    "operand of `!`",
+                    "`!` takes a bool; for numbers compare instead, e.g. `n == 0`",
+                )?;
                 Type::Bool
             }
             ExprKind::Binary(op, l, r) => {
                 use BinOp::*;
                 match op {
                     Add | Sub | Mul | Div | Rem => {
-                        self.expect(l, &Type::I64, "left operand")?;
-                        self.expect(r, &Type::I64, "right operand")?;
+                        let h = "arithmetic works on i64 only; there is no string `+` in v0";
+                        self.expect_h(l, &Type::I64, "left operand", h)?;
+                        self.expect_h(r, &Type::I64, "right operand", h)?;
                         Type::I64
                     }
                     Lt | Le | Gt | Ge => {
-                        self.expect(l, &Type::I64, "left operand")?;
-                        self.expect(r, &Type::I64, "right operand")?;
+                        let h = "`<`, `<=`, `>` and `>=` compare i64 values only";
+                        self.expect_h(l, &Type::I64, "left operand", h)?;
+                        self.expect_h(r, &Type::I64, "right operand", h)?;
                         Type::Bool
                     }
                     And | Or => {
-                        self.expect(l, &Type::Bool, "left operand")?;
-                        self.expect(r, &Type::Bool, "right operand")?;
+                        let h = "`&&` and `||` take bool operands; compare first, e.g. `n > 0`";
+                        self.expect_h(l, &Type::Bool, "left operand", h)?;
+                        self.expect_h(r, &Type::Bool, "right operand", h)?;
                         Type::Bool
                     }
                     Eq | Ne => {
@@ -452,9 +556,15 @@ impl<'a> Checker<'a> {
                             return Err(Diag::new(
                                 l.pos,
                                 format!("cannot compare values of type `{lt}`"),
+                                "`==` and `!=` work on i64, bool and str only",
                             ));
                         }
-                        self.expect(r, &lt, "right operand")?;
+                        self.expect_h(
+                            r,
+                            &lt,
+                            "right operand",
+                            "both sides of `==`/`!=` must have the same type",
+                        )?;
                         Type::Bool
                     }
                 }
@@ -465,27 +575,40 @@ impl<'a> Checker<'a> {
                     if !matches!(t, Type::I64 | Type::Bool | Type::Str) {
                         return Err(Diag::new(
                             a.pos,
-                            format!("`print` cannot show a `{t}` value"),
+                            format!("`print` cannot show a value of type `{t}`"),
+                            "`print` takes i64, bool and str arguments",
                         ));
                     }
                 }
                 Type::Unit
             }
             ExprKind::Call(name, args) => {
-                let sig = self
-                    .fns
-                    .get(name)
-                    .ok_or_else(|| Diag::new(e.pos, format!("unknown function `{name}`")))?;
+                let sig = self.fns.get(name).ok_or_else(|| {
+                    let names = self.fns.keys().map(|k| k.as_str());
+                    let hint = match closest(name, names.chain(["print"])) {
+                        Some(c) => format!("did you mean `{c}`?"),
+                        None => format!("declare it with `fn {name}(...) {{ ... }}` or `extern \"C\" fn {name}(...);`"),
+                    };
+                    Diag::new(e.pos, format!("unknown function `{name}`"), hint)
+                })?;
                 let (params, ret) = (sig.params.clone(), sig.ret.clone());
                 if name == "main" {
-                    return Err(Diag::new(e.pos, "`main` cannot be called"));
+                    return Err(Diag::new(
+                        e.pos,
+                        "`main` cannot be called",
+                        "move the shared code into another function and call that",
+                    ));
                 }
                 self.args(args, &params, name, e.pos)?;
                 ret
             }
             ExprKind::Spawn(a) => {
                 if !self.agents.contains_key(a) {
-                    return Err(Diag::new(e.pos, format!("unknown agent `{a}`")));
+                    let hint = match closest(a, self.agents.keys().map(|k| k.as_str())) {
+                        Some(c) => format!("did you mean `{c}`?"),
+                        None => format!("declare it with `agent {a} {{ ... }}`"),
+                    };
+                    return Err(Diag::new(e.pos, format!("unknown agent `{a}`"), hint));
                 }
                 Type::Agent(a.clone())
             }
@@ -526,7 +649,7 @@ mod tests {
 
     #[test]
     fn params_are_immutable() {
-        assert!(err("fn f(a: i64) { a = 2; } fn main() {}").contains("immutable binding `a`"));
+        assert!(err("fn f(a: i64) { a = 2; } fn main() {}").contains("immutable parameter `a`"));
     }
 
     #[test]

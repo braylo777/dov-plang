@@ -339,6 +339,7 @@ impl<'a> Gen<'a> {
                 target,
                 handler,
                 args,
+                ..
             } => {
                 let Type::Agent(a) = &self.types[&target.pos] else {
                     unreachable!("checked")

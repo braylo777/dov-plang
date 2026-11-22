@@ -2,7 +2,7 @@
 
 use crate::ast::*;
 use crate::diag::{Diag, Pos, Result};
-use crate::lexer::{Tok, Token};
+use crate::lexer::{is_keyword, spell, Tok, Token};
 
 pub struct Parser {
     toks: Vec<Token>,
@@ -19,7 +19,24 @@ fn describe(t: &Tok) -> String {
         Tok::Str(_) => "string literal".into(),
         Tok::Ident(s) => format!("`{s}`"),
         Tok::Eof => "end of file".into(),
-        other => format!("{other:?}").to_lowercase(),
+        k if is_keyword(k) => format!("keyword `{}`", spell(k)),
+        other => format!("`{}`", spell(other)),
+    }
+}
+
+/// Default hint when `want` was expected.
+fn hint_for(want: &Tok) -> &'static str {
+    match want {
+        Tok::Semi => "end the statement with `;`",
+        Tok::RParen => "close the list with `)`; separate items with `,`",
+        Tok::LParen => "add `(`: function, handler and call argument lists need parentheses",
+        Tok::LBrace => "add `{` to start the block",
+        Tok::RBrace => "add `}` to close the block",
+        Tok::Colon => "give the parameter a type, e.g. `n: i64`",
+        Tok::Assign => "give it an initial value with `=`, e.g. `let x = 1;`",
+        Tok::Dot => "write `send <handle>.<handler>(<args>);`",
+        Tok::Fn => "write `extern \"C\" fn name(params) -> type;`",
+        _ => "check the syntax near here",
     }
 }
 
@@ -48,13 +65,31 @@ impl Parser {
             false
         }
     }
+    /// End of the previous token: where a missing `;` belongs.
+    fn prev_end(&self) -> Pos {
+        if self.i == 0 {
+            return self.pos();
+        }
+        let t = &self.toks[self.i - 1];
+        Pos {
+            line: t.pos.line,
+            col: t.pos.col + t.len,
+        }
+    }
     fn expect(&mut self, t: Tok, what: &str) -> Result<Pos> {
         if *self.peek() == t {
             Ok(self.advance().pos)
         } else {
+            // A missing `;` is reported right after the previous token, not at the next line.
+            let pos = if t == Tok::Semi {
+                self.prev_end()
+            } else {
+                self.pos()
+            };
             Err(Diag::new(
-                self.pos(),
+                pos,
                 format!("expected {what}, found {}", describe(self.peek())),
+                hint_for(&t),
             ))
         }
     }
@@ -64,10 +99,18 @@ impl Parser {
                 let p = self.advance().pos;
                 Ok((s, p))
             }
-            other => Err(Diag::new(
-                self.pos(),
-                format!("expected {what}, found {}", describe(&other)),
-            )),
+            other => {
+                let hint = if is_keyword(&other) {
+                    format!("`{}` is a keyword; choose another name", spell(&other))
+                } else {
+                    "names start with a letter or `_`, then letters, digits or `_`".into()
+                };
+                Err(Diag::new(
+                    self.pos(),
+                    format!("expected {what}, found {}", describe(&other)),
+                    hint,
+                ))
+            }
         }
     }
 
@@ -85,6 +128,7 @@ impl Parser {
                             "expected `fn`, `extern` or `agent`, found {}",
                             describe(other)
                         ),
+                        "only declarations may appear at the top level; put statements inside `fn main() { ... }`",
                     ))
                 }
             });
@@ -155,12 +199,17 @@ impl Parser {
                 return Err(Diag::new(
                     self.pos(),
                     format!("unsupported ABI \"{abi}\"; only \"C\" is supported"),
+                    "write `extern \"C\" fn ...`",
                 ))
             }
             _ => {
                 return Err(Diag::new(
                     self.pos(),
-                    "expected ABI string \"C\" after `extern`",
+                    format!(
+                        "expected ABI string \"C\" after `extern`, found {}",
+                        describe(self.peek())
+                    ),
+                    "write `extern \"C\" fn ...`",
                 ))
             }
         }
@@ -224,6 +273,7 @@ impl Parser {
                             "expected `let`, `var`, `on` or `}}` in agent body, found {}",
                             describe(other)
                         ),
+                        "an agent holds only fields (`let`/`var name = value;`) and handlers (`on name(params) { ... }`)",
                     ))
                 }
             }
@@ -242,7 +292,11 @@ impl Parser {
         let mut stmts = Vec::new();
         while *self.peek() != Tok::RBrace {
             if *self.peek() == Tok::Eof {
-                return Err(Diag::new(self.pos(), "expected `}`, found end of file"));
+                return Err(Diag::new(
+                    self.pos(),
+                    "expected `}`, found end of file",
+                    "a block is not closed; add the missing `}`",
+                ));
             }
             stmts.push(self.stmt()?);
         }
@@ -292,12 +346,13 @@ impl Parser {
                 self.advance();
                 let target = self.primary()?;
                 self.expect(Tok::Dot, "`.` then a handler name after `send <agent>`")?;
-                let (handler, _) = self.ident("a handler name")?;
+                let (handler, handler_pos) = self.ident("a handler name")?;
                 let args = self.args()?;
                 self.expect(Tok::Semi, "`;`")?;
                 StmtKind::Send {
                     target,
                     handler,
+                    handler_pos,
                     args,
                 }
             }
@@ -451,6 +506,7 @@ impl Parser {
                 return Err(Diag::new(
                     pos,
                     format!("expected an expression, found {}", describe(&other)),
+                    "an expression is a literal, a name, a call, `spawn Agent`, or `( ... )`",
                 ))
             }
         };
