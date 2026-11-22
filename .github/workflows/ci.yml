@@ -1,0 +1,55 @@
+# CI for .dov pLang: build, unit + e2e tests, golden suite (strict C + ASan/UBSan),
+# and `dovc fmt --check` on the examples. Runs on macOS (clang) and Ubuntu (gcc).
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: test (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      CARGO_TERM_COLOR: always
+      CARGO_INCREMENTAL: "0"
+      # Fail instead of skipping if the sanitizer runtime is missing.
+      DOV_REQUIRE_SAN: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Rust toolchain
+        run: rustup toolchain install stable --profile minimal && rustup default stable
+
+      - name: Tool versions
+        run: |
+          rustc --version
+          cargo --version
+          cc --version
+
+      - name: Build (release)
+        run: cargo build --release --locked
+
+      - name: Unit and e2e tests
+        run: cargo test --locked --lib --bins --test e2e
+
+      - name: Golden suite (run / fail / fmt; strict C + ASan/UBSan)
+        run: cargo test --locked --test golden
+
+      - name: Examples are formatted
+        run: ./target/release/dovc fmt --check examples/*.dov
+
+      - name: Examples run
+        run: |
+          for f in examples/*.dov; do
+            echo "== $f"
+            ./target/release/dovc run "$f"
+          done
