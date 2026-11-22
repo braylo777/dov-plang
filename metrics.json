@@ -1,1 +1,1 @@
-{"version": "0.2.0", "examples": 3, "tests": 190, "tests_passing": 190, "golden_run": 47, "golden_fail": 83, "golden_fmt": 15, "negative_cases": 83, "loc_rust": 2767, "deps": 0, "loc_rust_rule": "non-blank, non-comment lines in crates/dovc/src/*.rs"}
+{"version": "0.2.0", "examples": 3, "tests": 192, "tests_passing": 192, "golden_run": 47, "golden_fail": 84, "golden_fmt": 16, "negative_cases": 84, "loc_rust": 2767, "deps": 0, "loc_rust_rule": "non-blank, non-comment lines in crates/dovc/src/*.rs"}

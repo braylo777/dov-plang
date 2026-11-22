@@ -17,7 +17,7 @@ may break programs (each break is listed here).
 - Golden test suite (`tests/golden/{run,fail,fmt}`). Each file is its own test, and the emitted C is
   built with `-Wall -Wextra -Werror` and with ASan/UBSan. `DOV_BLESS=1` updates the expected files.
 - CI for macOS and Ubuntu (`.github/workflows/ci.yml`).
-- Tests: 35 → 190.
+- Tests: 35 → 192.
 
 ### Changed (breaking)
 - Identifiers are ASCII only (`[A-Za-z_][A-Za-z0-9_]*`). 0.1 accepted Unicode letters, and they were
@@ -25,6 +25,8 @@ may break programs (each break is listed here).
 - A handler parameter of type `()` is now a compile error. In 0.1 it produced invalid C.
 - An `extern "C"` function named after a C keyword (e.g. `int`) is now a compile error. In 0.1 it
   produced invalid C.
+- `extern "C"` names that clash with the generated C (`v_*`, `f_*`, `self`, `m`, `NULL`, `size_t`, …)
+  are now compile errors. In 0.1 they failed in the C compiler.
 - Error messages are reworded. The hint moved to its own line (e.g. "declare it with `var`…").
 
 ### Fixed

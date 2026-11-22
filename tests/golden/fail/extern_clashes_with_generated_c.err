@@ -1,0 +1,5 @@
+tests/golden/fail/extern_clashes_with_generated_c.dov:1:1: error: extern name `NULL` clashes with a name in the generated C
+  |
+1 | extern "C" fn NULL() -> i64;
+  | ^
+  = hint: names used by dovc's C output or <stdint.h>/<stdbool.h>/<stddef.h> (e.g. `NULL`, `size_t`, `self`, `v_x`) cannot be extern names

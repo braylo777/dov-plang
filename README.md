@@ -67,14 +67,14 @@ cargo build --release && cargo test
 ./target/release/dovc fmt --check examples/*.dov
 ```
 
-The suite has 190 tests:
+The suite has 192 tests:
 - unit tests for the lexer, parser, checker, diagnostics and formatter;
 - e2e tests that run the examples, check deterministic agent order and test the `fmt` CLI;
 - the golden suite in `tests/golden/`:
   - `run/`: 47 programs. Each must be fmt-clean and must give the expected stdout (or panic stderr).
     Its emitted C is built with `-std=c11 -Wall -Wextra -Werror` and with `-fsanitize=address,undefined`.
-  - `fail/`: 83 rejected programs, one per error kind. Each must give the exact diagnostic.
-  - `fmt/`: 15 formatter cases.
+  - `fail/`: 84 rejected programs, one per error kind. Each must give the exact diagnostic.
+  - `fmt/`: 16 formatter cases.
 
 `DOV_BLESS=1 cargo test --test golden` rewrites the expected files. Review the diff before you commit.
 CI (`.github/workflows/ci.yml`) runs all of this on macOS and Ubuntu.

@@ -303,7 +303,12 @@ fn main() {
   `long` is 64-bit only on LP64 targets, so the runtime header has a static assert for LP64
   (64-bit macOS and Linux).
 - The emitted C prototype is `R name(T1, T2, …);`, with the name unchanged. The name therefore
-  cannot be a C keyword, `main`, or begin with `dov_`. All three are compile errors.
+  cannot be one of these, and each is a compile error:
+  - a C keyword, or `main`;
+  - a name that begins with `dov_` or `DOV_`;
+  - a name the generated C uses: `v_*`, `v<digit>*`, `f_*`, `self`, `args`, `m`;
+  - a name from `<stdint.h>`, `<stdbool.h>` or `<stddef.h>`, such as `NULL`, `size_t`, `bool`,
+    `int64_t` or `INT64_MAX`.
 - **Prototypes are trusted.** If the declaration does not match the real C function (for example
   `strlen`, which returns `size_t`, or `abs`, which takes `int`), the behavior is that of C:
   undefined, or a C compile error. Variadic functions such as `printf` cannot be declared.

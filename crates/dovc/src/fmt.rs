@@ -84,6 +84,10 @@ fn space_between(prev: &Tok, prev_unary: bool, cur: &Tok) -> bool {
     ) {
         return false;
     }
+    // Keep `- -x` apart so it never reads like a `--` decrement.
+    if prev_unary && *prev == Tok::Minus && *cur == Tok::Minus {
+        return true;
+    }
     if matches!(prev, Tok::LParen | Tok::Dot) || prev_unary {
         return false;
     }

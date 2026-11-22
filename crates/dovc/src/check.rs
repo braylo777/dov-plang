@@ -9,6 +9,30 @@ use std::collections::HashMap;
 
 pub type Types = HashMap<Pos, Type>;
 
+/// Would an unprefixed extern name collide with an identifier in the emitted C?
+/// Generated names: `v_*`/`v<N>_*` locals, `f_*` fields, `self`, `args`, `m`, `DOV_*`;
+/// header names: stdint/stdbool/stddef types and macros.
+fn clashes_with_generated_c(n: &str) -> bool {
+    const EXACT: &[&str] = &[
+        "self", "args", "m", "NULL", "bool", "true", "false", "size_t", "ptrdiff_t", "wchar_t",
+        "max_align_t", "offsetof", "intptr_t", "uintptr_t", "intmax_t", "uintmax_t",
+        "__bool_true_false_are_defined",
+    ];
+    let b = n.as_bytes();
+    let v_numbered = b.len() > 1 && b[0] == b'v' && b[1].is_ascii_digit();
+    let stdint_type = (n.starts_with("int") || n.starts_with("uint")) && n.ends_with("_t");
+    let stdint_macro = n.starts_with("INT") || n.starts_with("UINT") || n.starts_with("PTRDIFF_")
+        || n.starts_with("SIZE_") || n.starts_with("WCHAR_") || n.starts_with("SIG_ATOMIC_")
+        || n.starts_with("WINT_");
+    EXACT.contains(&n)
+        || n.starts_with("v_")
+        || n.starts_with("f_")
+        || n.starts_with("DOV_")
+        || v_numbered
+        || stdint_type
+        || stdint_macro
+}
+
 /// C11 keywords (plus the C23 ones compilers already reserve). `extern "C"` names are
 /// emitted unprefixed, so these cannot be used for them.
 const C_KEYWORDS: &[&str] = &[
@@ -164,6 +188,13 @@ impl<'a> Checker<'a> {
                             e.pos,
                             format!("extern name `{}` is a C keyword", e.name),
                             "extern names are emitted as-is into C; a C keyword cannot name a function",
+                        ));
+                    }
+                    if clashes_with_generated_c(&e.name) {
+                        return Err(Diag::new(
+                            e.pos,
+                            format!("extern name `{}` clashes with a name in the generated C", e.name),
+                            "names used by dovc's C output or <stdint.h>/<stdbool.h>/<stddef.h> (e.g. `NULL`, `size_t`, `self`, `v_x`) cannot be extern names",
                         ));
                     }
                     if e.name.starts_with("dov_") || e.name == "main" {
