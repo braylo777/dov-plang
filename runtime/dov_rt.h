@@ -10,6 +10,14 @@
 
 _Static_assert(sizeof(long) == 8, "dov v0.1 targets LP64 (64-bit long)");
 
+/* Generated static functions may be unused (an unsent handler, an uncalled fn);
+ * that is legal .dov, so keep -Wunused-function quiet under -Wall -Werror. */
+#if defined(__GNUC__) || defined(__clang__)
+#define DOV_UNUSED __attribute__((unused))
+#else
+#define DOV_UNUSED
+#endif
+
 typedef void (*dov_handler_fn)(void *self, void *args);
 
 void *dov_alloc(size_t size);

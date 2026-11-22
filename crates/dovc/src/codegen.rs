@@ -149,7 +149,7 @@ impl<'a> Gen<'a> {
         }
         for f in &fns {
             self.line(&format!(
-                "static {} dov_fn_{}({});",
+                "DOV_UNUSED static {} dov_fn_{}({});",
                 c_ty(&f.ret),
                 f.name,
                 Self::params(&f.params, "")
@@ -157,13 +157,13 @@ impl<'a> Gen<'a> {
         }
         for a in &agents {
             self.line(&format!(
-                "static dov_agent_{0} *dov_spawn_{0}(void);",
+                "DOV_UNUSED static dov_agent_{0} *dov_spawn_{0}(void);",
                 a.name
             ));
             for h in &a.handlers {
                 let selfp = format!("dov_agent_{} *self", a.name);
                 self.line(&format!(
-                    "static void dov_on_{}_{}({});",
+                    "DOV_UNUSED static void dov_on_{}_{}({});",
                     a.name,
                     h.name,
                     Self::params(&h.params, &selfp)
@@ -184,7 +184,7 @@ impl<'a> Gen<'a> {
                     self.line(&format!("}} dov_msg_{tag};"));
                 }
                 self.line(&format!(
-                    "static void dov_tramp_{tag}(void *self, void *args) {{"
+                    "DOV_UNUSED static void dov_tramp_{tag}(void *self, void *args) {{"
                 ));
                 if h.params.is_empty() {
                     self.line("    (void)args;");
@@ -303,6 +303,8 @@ impl<'a> Gen<'a> {
                     (false, false) => format!("const {t} v_{name}"),
                 };
                 self.line(&format!("{decl} = {v};"));
+                // An unused binding is legal .dov; keep strict C (-Wunused-variable) quiet.
+                self.line(&format!("(void)v_{name};"));
                 self.locals.last_mut().unwrap().insert(name.clone());
             }
             StmtKind::Assign { name, value } => {
