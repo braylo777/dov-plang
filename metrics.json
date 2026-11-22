@@ -1,1 +1,1 @@
-{"version":"0.1.0","examples":3,"tests":35,"tests_passing":35,"negative_cases":6,"loc_rust":2199,"deps":0}
+{"version": "0.1.0", "examples": 3, "tests": 35, "tests_passing": 35, "negative_cases": 6, "loc_rust": 2056, "deps": 0, "loc_rust_rule": "non-blank, non-comment lines in crates/dovc/src/*.rs"}

@@ -230,6 +230,9 @@ impl<'a> Gen<'a> {
                 Self::params(&f.params, "")
             ));
             self.indent = 1;
+            for p in &f.params {
+                self.line(&format!("(void)v_{};", p.name));
+            }
             self.stmts(&f.body);
             if f.ret != Type::Unit {
                 self.line(&format!(
@@ -253,6 +256,9 @@ impl<'a> Gen<'a> {
                 ));
                 self.indent = 1;
                 self.line("(void)self;");
+                for p in &h.params {
+                    self.line(&format!("(void)v_{};", p.name));
+                }
                 self.stmts(&h.body);
                 self.indent = 0;
                 self.line("}");
@@ -305,7 +311,7 @@ impl<'a> Gen<'a> {
                 self.line(&format!("{target} = {v};"));
             }
             StmtKind::If { cond, then, els } => {
-                let c = self.expr(cond);
+                let c = Self::cond(self.expr(cond));
                 self.line(&format!("if ({c}) {{"));
                 self.block(then);
                 if let Some(e) = els {
@@ -315,7 +321,7 @@ impl<'a> Gen<'a> {
                 self.line("}");
             }
             StmtKind::While { cond, body } => {
-                let c = self.expr(cond);
+                let c = Self::cond(self.expr(cond));
                 self.line(&format!("while ({c}) {{"));
                 self.block(body);
                 self.line("}");
@@ -355,6 +361,26 @@ impl<'a> Gen<'a> {
                 self.line("}");
             }
         }
+    }
+
+    /// Drop one redundant outer paren pair so clang's -Wparentheses-equality stays quiet.
+    fn cond(c: String) -> String {
+        if c.starts_with('(') && c.ends_with(')') {
+            let inner = &c[1..c.len() - 1];
+            let mut depth = 0i32;
+            let balanced = inner.chars().all(|ch| {
+                match ch {
+                    '(' => depth += 1,
+                    ')' => depth -= 1,
+                    _ => {}
+                }
+                depth >= 0
+            });
+            if balanced && depth == 0 && !inner.contains('"') {
+                return inner.to_string();
+            }
+        }
+        c
     }
 
     fn var(&self, name: &str) -> String {

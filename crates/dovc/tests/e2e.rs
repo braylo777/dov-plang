@@ -176,6 +176,12 @@ fn generated_c_is_warning_free() {
         std::fs::write(&c, dovc::compile_to_c(&src).unwrap()).unwrap();
         strict_cc(&c);
     }
+    let extra = "fn f(n: i64) -> i64 { if n == 0 { return 0; } return n + f(n - 1); }\n\
+                 fn unused(x: i64, y: bool) {}\n\
+                 fn main() { while f(1) != 1 { } unused(1, true); print(f(3)); }\n";
+    let c = dir.join("extra.c");
+    std::fs::write(&c, dovc::compile_to_c(extra).unwrap()).unwrap();
+    strict_cc(&c);
     strict_cc(&dir.join("dov_rt.c"));
 }
 

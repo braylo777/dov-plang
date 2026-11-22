@@ -36,7 +36,7 @@ cargo build --release
 ./target/release/dovc run examples/ffi.dov            # calls libc labs()
 ```
 
-Commands: `dovc check | emit-c | build [-o out] | run <file.dov>`.
+Commands: `dovc check <file.dov>`, `dovc emit-c <file.dov>`, `dovc build <file.dov> [-o out]`, `dovc run <file.dov>`.
 
 ## Verify
 
@@ -46,7 +46,7 @@ cargo test --workspace && cargo run -p dovc -- run examples/hello.dov
 
 The suite covers the lexer, parser and checker (unit), compiles and runs every example (e2e), checks
 6 rejected programs in `tests/fail/` (`// expect:` line = required error), proves agent message order
-is deterministic, and compiles all generated C with `-Wall -Wextra -Werror`.
+is deterministic, and checks generated C for the examples plus a recursion/unused-param case with `-Wall -Wextra -Werror`.
 
 ## How it works
 

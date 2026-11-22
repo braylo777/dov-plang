@@ -58,3 +58,7 @@ Comments: `// ...`. Integers allow `_` separators.
   left to right.
 - Strings are literals only; no concatenation or heap strings yet.
 - One file per program; no modules.
+- `extern "C"` prototypes are trusted: `i64` maps to C `long`. Declaring a C function with the wrong
+  types (e.g. `abs`, which takes `int`) is undefined behavior, as in C. v0.4 imports real headers.
+- Very deep recursion overflows the native stack (crash, no panic message). No stack guard yet.
+- The literal `-9223372036854775808` is rejected; write `-9223372036854775807 - 1`.
