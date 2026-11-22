@@ -1,10 +1,14 @@
-# .dov pLang — design (v0.1)
+# .dov pLang — design (v0.1, still current for v0.2)
+
+This file explains *why* the language is the way it is. The normative rules (full EBNF grammar,
+semantics, panics, diagnostics, canonical format) are in [SPEC.md](SPEC.md). If the two differ,
+SPEC.md is correct.
 
 ## Goals
 A modern rewrite of C/C++ for agentic systems: C-level output and C interop, with immutability,
 memory safety and message-passing concurrency as defaults, not add-ons.
 
-## Grammar (v0.1)
+## Grammar sketch (see SPEC.md §2 for the full EBNF)
 ```
 program  = item*
 item     = fn | extern | agent
@@ -43,8 +47,8 @@ Comments: `// ...`. Integers allow `_` separators.
 ## Safety
 - `+ - *` and unary `-` panic on overflow; `/` and `%` panic on zero (exit code 101, line number).
 - No null and no raw pointers in safe code (v0.1 has no pointer types at all).
-- Ownership: v0.1 has no heap values, so there is nothing to move yet. v0.2 adds structs and heap
-  values with single ownership, moves, and `&` / `&var` borrows checked at compile time.
+- Ownership: v0.1 has no heap values, so there is nothing to move yet. Later phases add structs and
+  heap values with single ownership, moves, and `&` / `&var` borrows checked at compile time.
 
 ## C interop
 - `extern "C" fn name(...) -> T;` emits a C prototype and a direct call. Allowed types: `i64`
@@ -54,8 +58,8 @@ Comments: `// ...`. Integers allow `_` separators.
 - v0.1 targets LP64 platforms (macOS, Linux 64-bit). A static assert enforces it.
 
 ## Known v0.1 limits
-- Call arguments with side effects follow C order of evaluation (unspecified). v0.2 lowers them
-  left to right.
+- Call arguments and binary operands with side effects follow C order of evaluation (unspecified;
+  SPEC.md §8). A later version lowers them left to right.
 - Strings are literals only; no concatenation or heap strings yet.
 - One file per program; no modules.
 - `extern "C"` prototypes are trusted: `i64` maps to C `long`. Declaring a C function with the wrong
