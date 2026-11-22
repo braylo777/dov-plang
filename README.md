@@ -36,32 +36,64 @@ cargo build --release
 ./target/release/dovc run examples/ffi.dov            # calls libc labs()
 ```
 
-Commands: `dovc check <file.dov>`, `dovc emit-c <file.dov>`, `dovc build <file.dov> [-o out]`, `dovc run <file.dov>`.
+Commands: `dovc check <file.dov>`, `dovc emit-c <file.dov>`, `dovc build <file.dov> [-o out]`,
+`dovc run <file.dov>`, `dovc fmt [--check] <file.dov>...`.
+
+## Error messages
+
+Every compile error shows where it is, the source line, a caret and a short hint:
+
+```text
+demo.dov:3:5: error: cannot assign to immutable binding `x`
+  |
+3 |     x = 2;
+  |     ^
+  = hint: declare it with `var x` instead of `let x` to allow mutation
+```
+
+Unknown names get a "did you mean" hint when a close name exists.
+
+## Formatter
+
+`dovc fmt file.dov` rewrites a file in the canonical layout (4-space indent, one statement per line,
+comments and literal spelling kept). `dovc fmt --check file.dov` changes nothing and exits 1 if the
+file is not formatted. The formatter is idempotent and checks its own output. The rules are in
+[SPEC.md §15](docs/SPEC.md).
 
 ## Verify
 
 ```bash
-cargo test --workspace && cargo run -p dovc -- run examples/hello.dov
+cargo build --release && cargo test
+./target/release/dovc fmt --check examples/*.dov
 ```
 
-The suite covers the lexer, parser and checker (unit), compiles and runs every example (e2e), checks
-6 rejected programs in `tests/fail/` (`// expect:` line = required error), proves agent message order
-is deterministic, and checks generated C for the examples plus a recursion/unused-param case with `-Wall -Wextra -Werror`.
+The suite has 190 tests:
+- unit tests for the lexer, parser, checker, diagnostics and formatter;
+- e2e tests that run the examples, check deterministic agent order and test the `fmt` CLI;
+- the golden suite in `tests/golden/`:
+  - `run/`: 47 programs. Each must be fmt-clean and must give the expected stdout (or panic stderr).
+    Its emitted C is built with `-std=c11 -Wall -Wextra -Werror` and with `-fsanitize=address,undefined`.
+  - `fail/`: 83 rejected programs, one per error kind. Each must give the exact diagnostic.
+  - `fmt/`: 15 formatter cases.
+
+`DOV_BLESS=1 cargo test --test golden` rewrites the expected files. Review the diff before you commit.
+CI (`.github/workflows/ci.yml`) runs all of this on macOS and Ubuntu.
 
 ## How it works
 
 `lex → parse → check (types + immutability) → C11 codegen → cc → native binary`
 
 The compiler (`crates/dovc`) is Rust with zero dependencies. The runtime (`runtime/dov_rt.c`) is ~100
-lines of C: one FIFO mailbox queue, run to completion. See [docs/DESIGN.md](docs/DESIGN.md).
+lines of C: one FIFO mailbox queue, run to completion. The language rules are in [docs/SPEC.md](docs/SPEC.md) (grammar + semantics). The reasons for them are in
+[docs/DESIGN.md](docs/DESIGN.md).
 
-## Status: v0.1
+## Status: v0.2 (Phase 0: foundations)
 
 Working: `i64`/`bool`/`str`, functions, `let`/`var`, `if`/`else`/`while`/`return`, agents with
-fields and handlers, `spawn`/`send`, `extern "C"`, checked arithmetic, positioned errors.
+fields and handlers, `spawn`/`send`, `extern "C"`, checked arithmetic, diagnostics with hints, `dovc fmt`.
 
-Roadmap: v0.2 structs + heap values + ownership/borrow checker + `Option` · v0.3 multi-threaded
-agent scheduler · v0.4 C header import + C++ via C ABI · later: LLVM backend, `dov` package tool.
+Roadmap: see [docs/MASTERPLAN.md](docs/MASTERPLAN.md). Next is Phase 1 (v0.3): structs, enums, `match`,
+generics, `Result`/`Option`, modules, strings and slices, `defer`. Changes are listed in [CHANGELOG.md](CHANGELOG.md).
 
 ## License
 

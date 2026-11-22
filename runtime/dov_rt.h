@@ -1,4 +1,4 @@
-/* .dov pLang runtime v0.1 — agent mailboxes + checked arithmetic.
+/* .dov pLang runtime v0.2 — agent mailboxes + checked arithmetic.
  * Generated code includes only this header. It declares no libc
  * functions, so `extern "C"` declarations in .dov code cannot clash. */
 #ifndef DOV_RT_H
@@ -8,7 +8,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-_Static_assert(sizeof(long) == 8, "dov v0.1 targets LP64 (64-bit long)");
+_Static_assert(sizeof(long) == 8, "dov v0 targets LP64 (64-bit long)");
 
 /* Generated static functions may be unused (an unsent handler, an uncalled fn);
  * that is legal .dov, so keep -Wunused-function quiet under -Wall -Werror. */

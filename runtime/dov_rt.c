@@ -1,4 +1,4 @@
-/* .dov pLang runtime v0.1.
+/* .dov pLang runtime v0.2.
  * Agents: one global FIFO mailbox queue, run-to-completion, one thread.
  * Same program + same input = same message order (deterministic). */
 #include "dov_rt.h"

@@ -195,6 +195,6 @@ fn build_errors_render_full_diagnostics() {
 #[test]
 fn version_and_usage() {
     let o = dovc(&["--version"]);
-    assert!(String::from_utf8_lossy(&o.stdout).starts_with("dovc 0.1"));
+    assert!(String::from_utf8_lossy(&o.stdout).starts_with("dovc 0.2.0"));
     assert_eq!(dovc(&[]).status.code(), Some(2));
 }
