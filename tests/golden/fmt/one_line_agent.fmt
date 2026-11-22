@@ -1,0 +1,16 @@
+agent Counter {
+    var total: i64 = 0;
+    let name = "c";
+    on add(n: i64) {
+        total = total + n;
+    }
+    on report() {
+        print(name, total);
+    }
+}
+
+fn main() {
+    let c = spawn Counter;
+    send c.add(1);
+    send c.report();
+}

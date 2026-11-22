@@ -1,0 +1,8 @@
+fn main() {
+    let s = "dov";
+    print(s == "dov", " ", s != "dov", " ", "a" == "b");
+    print("tab:\tend");
+    print("quote: \"q\" backslash: \\");
+    print("unicode: é ✓");
+    print("line1\nline2");
+}

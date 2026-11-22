@@ -1,0 +1,5 @@
+tests/golden/fail/unknown_function_typo.dov:5:11: error: unknown function `sqare`
+  |
+5 |     print(sqare(3));
+  |           ^
+  = hint: did you mean `square`?

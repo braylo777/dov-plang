@@ -1,0 +1,5 @@
+tests/golden/fail/lex_non_ascii_name.dov:2:12: error: unexpected character `é`
+  |
+2 |     let café = 1;
+  |            ^
+  = hint: names use ASCII letters, digits and `_` only (non-ASCII text belongs in strings)

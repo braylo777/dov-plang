@@ -1,0 +1,5 @@
+tests/golden/fail/send_arg_type.dov:6:14: error: argument 1 of `A.h`: expected `i64`, found `bool`
+  |
+6 |     send a.h(false);
+  |              ^
+  = hint: there are no implicit conversions; change the value to the expected type

@@ -1,0 +1,5 @@
+tests/golden/fail/field_type_mismatch.dov:2:18: error: field `n` is declared `i64` but its value is `str`
+  |
+2 |     var n: i64 = "zero";
+  |                  ^
+  = hint: change the annotation to `str`, or give it a value of type `i64`

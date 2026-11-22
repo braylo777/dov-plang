@@ -1,0 +1,15 @@
+agent Flags {
+    on set(name: str, on_: bool) {
+        if on_ {
+            print(name, " on");
+        } else {
+            print(name, " off");
+        }
+    }
+}
+
+fn main() {
+    let f = spawn Flags;
+    send f.set("wifi", true);
+    send f.set("bt", false);
+}

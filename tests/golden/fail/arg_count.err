@@ -1,0 +1,5 @@
+tests/golden/fail/arg_count.dov:5:11: error: `add` takes 2 argument(s) but got 1
+  |
+5 |     print(add(1));
+  |           ^
+  = hint: expected `add(i64, i64)`

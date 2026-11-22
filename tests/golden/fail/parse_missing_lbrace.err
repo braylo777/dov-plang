@@ -1,0 +1,5 @@
+tests/golden/fail/parse_missing_lbrace.dov:2:5: error: expected `{`, found `print`
+  |
+2 |     print(1);
+  |     ^
+  = hint: add `{` to start the block

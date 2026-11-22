@@ -1,0 +1,11 @@
+fn side(n: i64) -> i64 {
+    print("side ", n);
+    return n;
+}
+
+fn main() {
+    1 + 2;
+    side(1);
+    side(2) * 3;
+    (print("in parens"));
+}

@@ -1,0 +1,5 @@
+tests/golden/fail/logic_operand_type.dov:2:13: error: left operand: expected `bool`, found `i64`
+  |
+2 |     let x = 1 && true;
+  |             ^
+  = hint: `&&` and `||` take bool operands; compare first, e.g. `n > 0`

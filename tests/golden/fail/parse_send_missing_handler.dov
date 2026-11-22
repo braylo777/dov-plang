@@ -1,0 +1,5 @@
+agent A {}
+fn main() {
+    let a = spawn A;
+    send a;
+}

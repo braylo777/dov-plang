@@ -1,0 +1,4 @@
+agent A {
+    let x = print(1);
+}
+fn main() {}

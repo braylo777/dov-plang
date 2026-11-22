@@ -1,0 +1,5 @@
+tests/golden/fail/return_needs_value.dov:2:5: error: `return` needs a `str` value
+  |
+2 |     return;
+  |     ^
+  = hint: write `return <str value>;`

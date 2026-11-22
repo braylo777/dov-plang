@@ -1,0 +1,5 @@
+tests/golden/fail/compare_agents.dov:5:11: error: cannot compare values of type `A`
+  |
+5 |     print(a == b);
+  |           ^
+  = hint: `==` and `!=` work on i64, bool and str only

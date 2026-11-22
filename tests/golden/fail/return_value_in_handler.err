@@ -1,0 +1,5 @@
+tests/golden/fail/return_value_in_handler.dov:3:16: error: return value: expected `()`, found `i64`
+  |
+3 |         return 1;
+  |                ^
+  = hint: handlers return nothing; write `return;`

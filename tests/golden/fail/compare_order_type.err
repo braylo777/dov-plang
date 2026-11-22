@@ -1,0 +1,5 @@
+tests/golden/fail/compare_order_type.dov:2:13: error: left operand: expected `i64`, found `str`
+  |
+2 |     let x = "a" < "b";
+  |             ^
+  = hint: `<`, `<=`, `>` and `>=` compare i64 values only

@@ -1,0 +1,3 @@
+agent A {}
+extern "C" fn make() -> A;
+fn main() {}

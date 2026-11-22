@@ -1,0 +1,5 @@
+tests/golden/fail/arg_type.dov:5:17: error: argument 1 of `twice`: expected `i64`, found `str`
+  |
+5 |     print(twice("2"));
+  |                 ^
+  = hint: there are no implicit conversions; change the value to the expected type

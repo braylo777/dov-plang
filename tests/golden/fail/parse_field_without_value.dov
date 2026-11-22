@@ -1,0 +1,4 @@
+agent A {
+    var n: i64;
+}
+fn main() {}

@@ -1,0 +1,5 @@
+tests/golden/fail/parse_spawn_missing_name.dov:2:19: error: expected an agent name after `spawn`, found integer `1`
+  |
+2 |     let a = spawn 1;
+  |                   ^
+  = hint: names start with a letter or `_`, then letters, digits or `_`

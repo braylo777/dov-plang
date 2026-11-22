@@ -1,0 +1,29 @@
+agent Acc {
+    var sum = 0;
+
+    on add(n: i64) {
+        sum = sum + n;
+    }
+
+    on done() {
+        print("sum = ", sum);
+    }
+}
+
+fn feed(a: Acc, n: i64) {
+    var i = 1;
+    while i <= n {
+        send a.add(i);
+        i = i + 1;
+    }
+}
+
+fn make() -> Acc {
+    return spawn Acc;
+}
+
+fn main() {
+    let a = make();
+    feed(a, 100);
+    send a.done();
+}

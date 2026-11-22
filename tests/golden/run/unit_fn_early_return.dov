@@ -1,0 +1,15 @@
+fn report(n: i64) {
+    if n < 0 {
+        print("negative");
+        return;
+    }
+    print("value ", n);
+}
+
+fn nothing() -> () {}
+
+fn main() {
+    report(-1);
+    report(4);
+    nothing();
+}

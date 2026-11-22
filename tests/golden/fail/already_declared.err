@@ -1,0 +1,5 @@
+tests/golden/fail/already_declared.dov:3:5: error: `x` is already declared in this scope
+  |
+3 |     let x = 2;
+  |     ^
+  = hint: use a new name, or declare it with `var` once and assign to it

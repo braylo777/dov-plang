@@ -1,0 +1,3 @@
+fn main() {
+    launch(1);
+}

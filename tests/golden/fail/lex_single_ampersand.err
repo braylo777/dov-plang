@@ -1,0 +1,5 @@
+tests/golden/fail/lex_single_ampersand.dov:2:18: error: unexpected character `&`
+  |
+2 |     let x = true & false;
+  |                  ^
+  = hint: logical operators are `&&` and `||`; there are no bitwise operators in v0

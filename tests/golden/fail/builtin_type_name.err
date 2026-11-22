@@ -1,0 +1,5 @@
+tests/golden/fail/builtin_type_name.dov:1:1: error: `str` is a built-in type name
+  |
+1 | agent str {}
+  | ^
+  = hint: choose another name for this declaration

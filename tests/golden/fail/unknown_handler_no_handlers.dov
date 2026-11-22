@@ -1,0 +1,5 @@
+agent Idle {}
+fn main() {
+    let i = spawn Idle;
+    send i.wake();
+}

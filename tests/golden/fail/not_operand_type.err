@@ -1,0 +1,5 @@
+tests/golden/fail/not_operand_type.dov:2:14: error: operand of `!`: expected `bool`, found `i64`
+  |
+2 |     let x = !1;
+  |              ^
+  = hint: `!` takes a bool; for numbers compare instead, e.g. `n == 0`

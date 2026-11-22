@@ -1,0 +1,10 @@
+extern "C" fn labs(x: i64) -> i64;
+extern "C" fn atol(s: str) -> i64;
+
+fn a() {}
+
+fn b() {}
+
+agent C {}
+
+fn main() {}

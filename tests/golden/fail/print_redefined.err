@@ -1,0 +1,5 @@
+tests/golden/fail/print_redefined.dov:1:1: error: `print` is a built-in and cannot be redefined
+  |
+1 | fn print(x: i64) {}
+  | ^
+  = hint: choose another name, e.g. `show`

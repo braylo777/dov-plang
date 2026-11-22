@@ -1,0 +1,5 @@
+tests/golden/fail/while_condition_type.dov:3:11: error: `while` condition: expected `bool`, found `i64`
+  |
+3 |     while n {
+  |           ^
+  = hint: conditions must be `bool`; compare explicitly, e.g. `n != 0`

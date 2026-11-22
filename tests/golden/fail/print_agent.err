@@ -1,0 +1,5 @@
+tests/golden/fail/print_agent.dov:3:11: error: `print` cannot show a value of type `A`
+  |
+3 |     print(spawn A);
+  |           ^
+  = hint: `print` takes i64, bool and str arguments

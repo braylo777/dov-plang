@@ -1,0 +1,5 @@
+tests/golden/fail/extern_reserved.dov:1:1: error: extern name `dov_panic` is reserved
+  |
+1 | extern "C" fn dov_panic(msg: str, line: i64);
+  | ^
+  = hint: `main` and names that start with `dov_` belong to the compiler and runtime

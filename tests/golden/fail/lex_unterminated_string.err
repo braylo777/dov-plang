@@ -1,0 +1,5 @@
+tests/golden/fail/lex_unterminated_string.dov:2:11: error: unterminated string literal
+  |
+2 |     print("hello);
+  |           ^
+  = hint: close the string with `"` on the same line; use `\n` for a newline

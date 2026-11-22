@@ -1,0 +1,7 @@
+agent A {
+    on h(a: i64, b: bool) {}
+}
+fn main() {
+    let a = spawn A;
+    send a.h(1);
+}

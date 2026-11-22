@@ -1,0 +1,5 @@
+tests/golden/fail/parse_let_missing_assign.dov:2:11: error: expected `=`, found integer `1`
+  |
+2 |     let x 1;
+  |           ^
+  = hint: give it an initial value with `=`, e.g. `let x = 1;`

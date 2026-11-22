@@ -1,0 +1,6 @@
+extern "C" fn labs(x: i64) -> i64;
+extern "C" fn atol(s: str) -> i64;
+
+fn main() {
+    print(labs(-42), " ", atol("1234"));
+}

@@ -1,0 +1,4 @@
+agent A {
+    var n: i64 = "zero";
+}
+fn main() {}

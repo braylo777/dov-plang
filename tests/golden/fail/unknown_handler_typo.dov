@@ -1,0 +1,7 @@
+agent Counter {
+    on add(n: i64) {}
+}
+fn main() {
+    let c = spawn Counter;
+    send c.ad(1);
+}

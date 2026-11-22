@@ -1,0 +1,7 @@
+fn main() {
+    let n: i64 = 3;
+    var ok: bool = true;
+    let s: str = "x";
+    ok = n > 2;
+    print(n, ok, s);
+}

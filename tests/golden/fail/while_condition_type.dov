@@ -1,0 +1,6 @@
+fn main() {
+    var n = 3;
+    while n {
+        n = n - 1;
+    }
+}

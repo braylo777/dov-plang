@@ -1,0 +1,5 @@
+tests/golden/fail/operand_type.dov:2:17: error: right operand: expected `i64`, found `bool`
+  |
+2 |     let x = 1 + true;
+  |                 ^
+  = hint: arithmetic works on i64 only; there is no string `+` in v0

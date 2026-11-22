@@ -1,0 +1,23 @@
+agent Cell {
+    var v = 0;
+
+    on set(n: i64) {
+        v = n;
+    }
+
+    on show(i: i64) {
+        print("cell ", i, " = ", v);
+    }
+}
+
+fn main() {
+    let a = spawn Cell;
+    let b = spawn Cell;
+    let c = spawn Cell;
+    send a.set(1);
+    send b.set(2);
+    send c.set(3);
+    send c.show(3);
+    send a.show(1);
+    send b.show(2);
+}

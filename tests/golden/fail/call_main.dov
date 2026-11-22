@@ -1,0 +1,4 @@
+fn again() {
+    main();
+}
+fn main() {}

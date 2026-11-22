@@ -1,0 +1,5 @@
+tests/golden/fail/parse_keyword_as_name.dov:2:9: error: expected a variable name, found keyword `agent`
+  |
+2 |     let agent = 1;
+  |         ^
+  = hint: `agent` is a keyword; choose another name

@@ -1,0 +1,3 @@
+agent A {}
+extern "C" fn take(a: A);
+fn main() {}

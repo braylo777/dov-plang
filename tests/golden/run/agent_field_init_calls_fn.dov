@@ -1,0 +1,19 @@
+fn start() -> i64 {
+    print("init runs at spawn");
+    return 7;
+}
+
+agent A {
+    var n = start();
+
+    on show() {
+        print("n = ", n);
+    }
+}
+
+fn main() {
+    print("before spawn");
+    let a = spawn A;
+    print("after spawn");
+    send a.show();
+}

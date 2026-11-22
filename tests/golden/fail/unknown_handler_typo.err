@@ -1,0 +1,5 @@
+tests/golden/fail/unknown_handler_typo.dov:6:12: error: agent `Counter` has no handler `ad`
+  |
+6 |     send c.ad(1);
+  |            ^
+  = hint: did you mean `add`?

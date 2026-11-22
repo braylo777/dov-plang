@@ -1,0 +1,5 @@
+tests/golden/fail/assign_to_param.dov:2:5: error: cannot assign to immutable parameter `n`
+  |
+2 |     n = n + 1;
+  |     ^
+  = hint: parameters are immutable; copy it first: `var n2 = n;`

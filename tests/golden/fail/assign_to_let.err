@@ -1,0 +1,5 @@
+tests/golden/fail/assign_to_let.dov:3:5: error: cannot assign to immutable binding `x`
+  |
+3 |     x = 2;
+  |     ^
+  = hint: declare it with `var x` instead of `let x` to allow mutation

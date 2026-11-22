@@ -1,0 +1,5 @@
+tests/golden/fail/unknown_handler.dov:4:12: error: agent `C` has no handler `reset`
+  |
+4 |     send c.reset();
+  |            ^
+  = hint: `C` handles: add

@@ -1,0 +1,11 @@
+fn loud(name: str, v: bool) -> bool {
+    print("eval ", name);
+    return v;
+}
+
+fn main() {
+    print(false && loud("a", true));
+    print(true || loud("b", true));
+    print(true && loud("c", false));
+    print(!(1 > 2) && !false);
+}

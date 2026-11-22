@@ -1,0 +1,5 @@
+tests/golden/fail/assign_type.dov:3:9: error: assignment to `x`: expected `i64`, found `bool`
+  |
+3 |     x = true;
+  |         ^
+  = hint: there are no implicit conversions; change the value to the expected type

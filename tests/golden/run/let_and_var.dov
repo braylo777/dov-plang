@@ -1,0 +1,12 @@
+fn main() {
+    let a = 10;
+    var b = a;
+    b = b + 5;
+    print(a, " ", b);
+    var flag = false;
+    flag = !flag;
+    print(flag);
+    var word = "one";
+    word = "two";
+    print(word);
+}

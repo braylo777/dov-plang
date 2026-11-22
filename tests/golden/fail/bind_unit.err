@@ -1,0 +1,5 @@
+tests/golden/fail/bind_unit.dov:2:13: error: cannot bind `x` to a `()` value
+  |
+2 |     let x = print(1);
+  |             ^
+  = hint: call it as a statement instead, e.g. `print(...);`

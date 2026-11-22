@@ -1,0 +1,5 @@
+tests/golden/fail/extern_returns_agent.dov:2:1: error: extern "C" functions cannot return agent handles
+  |
+2 | extern "C" fn make() -> A;
+  | ^
+  = hint: return i64, bool, str or `()` from C

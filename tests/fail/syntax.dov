@@ -1,4 +1,0 @@
-// expect: 3:13: error: expected an expression
-fn main() {
-    let x = ;
-}

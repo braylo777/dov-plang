@@ -1,0 +1,5 @@
+tests/golden/fail/call_main.dov:2:5: error: `main` cannot be called
+  |
+2 |     main();
+  |     ^
+  = hint: move the shared code into another function and call that

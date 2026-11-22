@@ -1,0 +1,5 @@
+tests/golden/fail/no_main.dov:1:1: error: program has no `fn main()`
+  |
+1 | fn helper() {}
+  | ^
+  = hint: add `fn main() { ... }`; the program starts there

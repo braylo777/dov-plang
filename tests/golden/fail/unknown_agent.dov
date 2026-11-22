@@ -1,0 +1,4 @@
+agent Counter {}
+fn main() {
+    let c = spawn Countr;
+}

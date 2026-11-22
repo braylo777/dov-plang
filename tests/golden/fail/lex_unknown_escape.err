@@ -1,0 +1,5 @@
+tests/golden/fail/lex_unknown_escape.dov:2:14: error: unknown escape `\q`
+  |
+2 |     print("a\qb");
+  |              ^
+  = hint: valid escapes are \n \t \\ \" and \0

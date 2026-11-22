@@ -1,0 +1,7 @@
+agent A {
+    let limit = 10;
+    on bump() {
+        limit = limit + 1;
+    }
+}
+fn main() {}

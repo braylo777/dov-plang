@@ -1,0 +1,5 @@
+tests/golden/fail/unit_handler_param.dov:2:10: error: parameters cannot have type `()`
+  |
+2 |     on h(x: ()) {}
+  |          ^
+  = hint: remove the parameter; `()` carries no value

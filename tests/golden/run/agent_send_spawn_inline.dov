@@ -1,0 +1,10 @@
+agent Greeter {
+    on hi(who: str) {
+        print("hi, ", who);
+    }
+}
+
+fn main() {
+    send spawn Greeter.hi("inline");
+    send (spawn Greeter).hi("parens");
+}

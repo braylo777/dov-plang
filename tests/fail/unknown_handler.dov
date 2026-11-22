@@ -1,6 +1,0 @@
-// expect: error: agent `C` has no handler `reset`
-agent C { on add(n: i64) {} }
-fn main() {
-    let c = spawn C;
-    send c.reset();
-}

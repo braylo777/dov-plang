@@ -1,0 +1,6 @@
+// leading comment
+fn main() { // trailing on fn
+    // own line
+    let x = 1; // trailing on let
+    print(x);
+}

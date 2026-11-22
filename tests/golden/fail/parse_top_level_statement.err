@@ -1,0 +1,5 @@
+tests/golden/fail/parse_top_level_statement.dov:1:1: error: expected `fn`, `extern` or `agent`, found keyword `let`
+  |
+1 | let x = 1;
+  | ^
+  = hint: only declarations may appear at the top level; put statements inside `fn main() { ... }`

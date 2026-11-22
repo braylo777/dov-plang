@@ -1,0 +1,17 @@
+agent A {
+    var n = 1;
+
+    on h(n: i64) {
+        print("param n = ", n);
+    }
+
+    on show() {
+        print("field n = ", n);
+    }
+}
+
+fn main() {
+    let a = spawn A;
+    send a.h(99);
+    send a.show();
+}

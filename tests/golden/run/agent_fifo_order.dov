@@ -1,0 +1,19 @@
+agent Echo {
+    on say(n: i64) {
+        print(n);
+    }
+}
+
+agent Relay {
+    on fwd(to: Echo, n: i64) {
+        send to.say(n * 10);
+    }
+}
+
+fn main() {
+    let e = spawn Echo;
+    let r = spawn Relay;
+    send r.fwd(e, 1);
+    send e.say(2);
+    send r.fwd(e, 3);
+}

@@ -1,0 +1,5 @@
+tests/golden/fail/unknown_variable.dov:2:11: error: unknown variable `missing`
+  |
+2 |     print(missing);
+  |           ^
+  = hint: declare it first with `let missing = ...;`

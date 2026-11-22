@@ -1,0 +1,5 @@
+fn bump(n: i64) -> i64 {
+    n = n + 1;
+    return n;
+}
+fn main() {}

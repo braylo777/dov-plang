@@ -1,0 +1,6 @@
+agent A {}
+fn main() {
+    let a = spawn A;
+    let b = spawn A;
+    print(a == b);
+}

@@ -1,0 +1,14 @@
+fn gcd(a: i64, b: i64) -> i64 {
+    var x = a;
+    var y = b;
+    while y != 0 {
+        let t = y;
+        y = x % y;
+        x = t;
+    }
+    return x;
+}
+
+fn main() {
+    print(gcd(1071, 462), " ", gcd(17, 5), " ", gcd(0, 9));
+}

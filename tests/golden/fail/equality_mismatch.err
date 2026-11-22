@@ -1,0 +1,5 @@
+tests/golden/fail/equality_mismatch.dov:2:18: error: right operand: expected `i64`, found `str`
+  |
+2 |     let x = 1 == "1";
+  |                  ^
+  = hint: both sides of `==`/`!=` must have the same type

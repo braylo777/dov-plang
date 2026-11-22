@@ -1,0 +1,5 @@
+tests/golden/fail/lex_int_overflow.dov:2:13: error: integer literal `99999999999999999999` does not fit in i64
+  |
+2 |     let x = 99999999999999999999;
+  |             ^
+  = hint: i64 holds -9223372036854775808 to 9223372036854775807; write the minimum as `-9223372036854775807 - 1`

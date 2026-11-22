@@ -1,0 +1,6 @@
+extern "C" fn labs(x: i64) -> i64;
+extern "C" fn srand(seed: i64) -> ();
+
+fn f(b: bool, s: str) -> () {}
+
+fn main() {}

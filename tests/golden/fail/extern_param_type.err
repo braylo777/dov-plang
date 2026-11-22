@@ -1,0 +1,5 @@
+tests/golden/fail/extern_param_type.dov:2:20: error: extern "C" parameters must be i64, bool or str, not `A`
+  |
+2 | extern "C" fn take(a: A);
+  |                    ^
+  = hint: C maps i64 to `long`, bool to `bool`, str to `const char *`; agent handles stay inside .dov

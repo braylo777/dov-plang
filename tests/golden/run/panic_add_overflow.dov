@@ -1,0 +1,6 @@
+fn main() {
+    var x = 9223372036854775807;
+    print("before");
+    x = x + 1;
+    print("never");
+}

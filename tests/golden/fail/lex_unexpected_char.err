@@ -1,0 +1,5 @@
+tests/golden/fail/lex_unexpected_char.dov:2:15: error: unexpected character `@`
+  |
+2 |     let x = 1 @ 2;
+  |               ^
+  = hint: remove this character; it is not part of .dov syntax

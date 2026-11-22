@@ -1,0 +1,12 @@
+fn main() {
+    let x = 1;
+    if true {
+        let x = 2;
+        print("inner ", x);
+        if true {
+            let x = "three";
+            print("innermost ", x);
+        }
+    }
+    print("outer ", x);
+}

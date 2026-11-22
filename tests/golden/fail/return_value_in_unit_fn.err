@@ -1,0 +1,5 @@
+tests/golden/fail/return_value_in_unit_fn.dov:2:12: error: return value: expected `()`, found `i64`
+  |
+2 |     return 1;
+  |            ^
+  = hint: this function returns `()`: write `return;`, or declare a return type such as `-> i64`

@@ -1,0 +1,5 @@
+tests/golden/fail/send_not_agent.dov:3:10: error: `send` needs an agent handle, found `i64`
+  |
+3 |     send x.go();
+  |          ^
+  = hint: get a handle with `let h = spawn AgentName;`, then `send h.handler(...);`

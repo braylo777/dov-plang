@@ -1,0 +1,6 @@
+fn square(n: i64) -> i64 {
+    return n * n;
+}
+fn main() {
+    print(sqare(3));
+}

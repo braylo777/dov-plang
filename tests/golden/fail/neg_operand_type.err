@@ -1,0 +1,5 @@
+tests/golden/fail/neg_operand_type.dov:2:14: error: operand of `-`: expected `i64`, found `str`
+  |
+2 |     let x = -"a";
+  |              ^
+  = hint: unary `-` takes an i64

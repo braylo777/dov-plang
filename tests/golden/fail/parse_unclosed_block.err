@@ -1,0 +1,5 @@
+tests/golden/fail/parse_unclosed_block.dov:3:1: error: expected `}`, found end of file
+  |
+3 | 
+  | ^
+  = hint: a block is not closed; add the missing `}`

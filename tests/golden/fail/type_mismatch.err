@@ -1,0 +1,5 @@
+tests/golden/fail/type_mismatch.dov:2:18: error: `n` is declared `i64` but its value is `str`
+  |
+2 |     let n: i64 = "ten";
+  |                  ^
+  = hint: change the annotation to `str`, or give it a value of type `i64`

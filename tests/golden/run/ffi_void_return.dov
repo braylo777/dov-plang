@@ -1,0 +1,6 @@
+extern "C" fn srand(seed: i64);
+
+fn main() {
+    srand(1);
+    print("srand called");
+}

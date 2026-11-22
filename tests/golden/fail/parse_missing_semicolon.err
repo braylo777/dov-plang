@@ -1,0 +1,5 @@
+tests/golden/fail/parse_missing_semicolon.dov:2:14: error: expected `;`, found `print`
+  |
+2 |     let x = 1
+  |              ^
+  = hint: end the statement with `;`

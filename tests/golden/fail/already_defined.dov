@@ -1,0 +1,3 @@
+fn tick() {}
+agent tick {}
+fn main() {}

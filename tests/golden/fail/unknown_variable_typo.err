@@ -1,0 +1,5 @@
+tests/golden/fail/unknown_variable_typo.dov:3:11: error: unknown variable `totl`
+  |
+3 |     print(totl);
+  |           ^
+  = hint: did you mean `total`?

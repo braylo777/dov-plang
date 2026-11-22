@@ -1,0 +1,5 @@
+tests/golden/fail/missing_return_no_else.dov:1:1: error: function `sign` must return `i64` on every path
+  |
+1 | fn sign(n: i64) -> i64 {
+  | ^
+  = hint: end the body with `return <value>;` or return in both `if`/`else` branches

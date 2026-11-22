@@ -1,0 +1,5 @@
+tests/golden/fail/unknown_function.dov:2:5: error: unknown function `launch`
+  |
+2 |     launch(1);
+  |     ^
+  = hint: declare it with `fn launch(...) { ... }` or `extern "C" fn launch(...);`

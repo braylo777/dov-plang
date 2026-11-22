@@ -1,0 +1,5 @@
+tests/golden/fail/field_init_sees_no_fields.dov:3:13: error: unknown variable `a`
+  |
+3 |     let b = a + 1;
+  |             ^
+  = hint: declare it first with `let a = ...;`

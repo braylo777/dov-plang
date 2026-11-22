@@ -1,0 +1,5 @@
+tests/golden/fail/parse_missing_comma.dov:1:15: error: expected `)`, found `b`
+  |
+1 | fn add(a: i64 b: i64) -> i64 {
+  |               ^
+  = hint: close the list with `)`; separate items with `,`

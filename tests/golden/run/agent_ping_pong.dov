@@ -1,0 +1,24 @@
+agent Player {
+    var name = "?";
+    var hits = 0;
+
+    on init(n: str) {
+        name = n;
+    }
+
+    on ball(back: Player, me: Player, left: i64) {
+        hits = hits + 1;
+        print(name, " hit #", hits, ", left ", left);
+        if left > 0 {
+            send back.ball(me, back, left - 1);
+        }
+    }
+}
+
+fn main() {
+    let a = spawn Player;
+    let b = spawn Player;
+    send a.init("a");
+    send b.init("b");
+    send a.ball(b, a, 4);
+}

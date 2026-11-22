@@ -1,0 +1,5 @@
+tests/golden/fail/parse_send_missing_handler.dov:4:11: error: expected `.` then a handler name after `send <agent>`, found `;`
+  |
+4 |     send a;
+  |           ^
+  = hint: write `send <handle>.<handler>(<args>);`

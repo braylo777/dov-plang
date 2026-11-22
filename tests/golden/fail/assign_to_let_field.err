@@ -1,0 +1,5 @@
+tests/golden/fail/assign_to_let_field.dov:4:9: error: cannot assign to immutable field `limit`
+  |
+4 |         limit = limit + 1;
+  |         ^
+  = hint: declare the field with `var limit` to allow mutation

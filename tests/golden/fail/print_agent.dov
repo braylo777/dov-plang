@@ -1,0 +1,4 @@
+agent A {}
+fn main() {
+    print(spawn A);
+}

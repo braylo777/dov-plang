@@ -1,0 +1,5 @@
+tests/golden/fail/parse_unsupported_abi.dov:1:8: error: unsupported ABI "Rust"; only "C" is supported
+  |
+1 | extern "Rust" fn f();
+  |        ^
+  = hint: write `extern "C" fn ...`

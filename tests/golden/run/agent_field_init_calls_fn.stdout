@@ -1,0 +1,4 @@
+before spawn
+init runs at spawn
+after spawn
+n = 7

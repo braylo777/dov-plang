@@ -1,0 +1,13 @@
+agent Quiet {
+    on never() {
+        print("never printed");
+    }
+}
+
+agent Empty {}
+
+fn main() {
+    let q = spawn Quiet;
+    let e = spawn Empty;
+    print("spawned, nothing sent");
+}

@@ -1,0 +1,4 @@
+fn twice(n) -> i64 {
+    return n * 2;
+}
+fn main() {}

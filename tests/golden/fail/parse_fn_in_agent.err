@@ -1,0 +1,5 @@
+tests/golden/fail/parse_fn_in_agent.dov:2:5: error: expected `let`, `var`, `on` or `}` in agent body, found keyword `fn`
+  |
+2 |     fn f() {}
+  |     ^
+  = hint: an agent holds only fields (`let`/`var name = value;`) and handlers (`on name(params) { ... }`)

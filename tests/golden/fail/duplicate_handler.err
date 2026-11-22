@@ -1,0 +1,5 @@
+tests/golden/fail/duplicate_handler.dov:3:5: error: duplicate handler `h`
+  |
+3 |     on h(x: i64) {}
+  |     ^
+  = hint: each handler in an agent needs its own name; there is no overloading

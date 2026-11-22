@@ -1,4 +1,0 @@
-// expect: error: `n` is declared `i64` but its value is `str`
-fn main() {
-    let n: i64 = "ten";
-}

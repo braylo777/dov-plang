@@ -1,0 +1,5 @@
+tests/golden/fail/parse_field_without_value.dov:2:15: error: expected `=` (agent fields need an initial value), found `;`
+  |
+2 |     var n: i64;
+  |               ^
+  = hint: give it an initial value with `=`, e.g. `let x = 1;`

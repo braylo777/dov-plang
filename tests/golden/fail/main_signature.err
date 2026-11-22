@@ -1,0 +1,5 @@
+tests/golden/fail/main_signature.dov:1:1: error: `main` takes no parameters and returns `()`
+  |
+1 | fn main(argc: i64) {}
+  | ^
+  = hint: declare it as `fn main() { ... }`

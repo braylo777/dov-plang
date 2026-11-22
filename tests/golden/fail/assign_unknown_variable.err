@@ -1,0 +1,5 @@
+tests/golden/fail/assign_unknown_variable.dov:2:5: error: unknown variable `count`
+  |
+2 |     count = 1;
+  |     ^
+  = hint: declare it first with `let count = ...;`

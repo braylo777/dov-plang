@@ -1,0 +1,5 @@
+fn main() {
+    print("n = ", 42, ", ok = ", true, ", off = ", false);
+    print();
+    print(-7, " ", 0);
+}

@@ -1,0 +1,5 @@
+tests/golden/fail/parse_missing_rparen.dov:2:15: error: expected `)`, found `;`
+  |
+2 |     print(1, 2;
+  |               ^
+  = hint: close the list with `)`; separate items with `,`

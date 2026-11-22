@@ -1,0 +1,5 @@
+agent A {
+    on h() {}
+    on h(x: i64) {}
+}
+fn main() {}

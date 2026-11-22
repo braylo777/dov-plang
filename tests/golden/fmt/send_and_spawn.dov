@@ -1,0 +1,2 @@
+agent G { on hi ( w : str ) { print ( w ) ; } }
+fn main() { send spawn G . hi ( "a" ) ; let g = spawn G ; send ( g ) . hi("b");send g.hi("c"); }

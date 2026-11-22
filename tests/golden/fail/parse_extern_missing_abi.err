@@ -1,0 +1,5 @@
+tests/golden/fail/parse_extern_missing_abi.dov:1:8: error: expected ABI string "C" after `extern`, found keyword `fn`
+  |
+1 | extern fn f();
+  |        ^
+  = hint: write `extern "C" fn ...`

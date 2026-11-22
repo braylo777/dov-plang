@@ -121,35 +121,6 @@ fn main() {
     );
 }
 
-/// Every file in tests/fail must be rejected with the `// expect:` text.
-#[test]
-fn negative_cases() {
-    let mut n = 0;
-    for entry in std::fs::read_dir(root().join("tests/fail")).unwrap() {
-        let p = entry.unwrap().path();
-        let name = p.file_name().unwrap().to_str().unwrap().to_string();
-        if !name.ends_with(".dov") || name.starts_with("._") {
-            continue;
-        }
-        let src = std::fs::read_to_string(&p).unwrap();
-        let expect = src
-            .lines()
-            .next()
-            .unwrap()
-            .strip_prefix("// expect: ")
-            .expect("first line must be `// expect: ...`");
-        let o = dovc(&["check", p.to_str().unwrap()]);
-        let err = String::from_utf8_lossy(&o.stderr);
-        assert!(!o.status.success(), "{name} should fail");
-        assert!(
-            err.contains(expect),
-            "{name}: expected `{expect}`, got `{err}`"
-        );
-        n += 1;
-    }
-    assert!(n >= 6, "only {n} negative cases found");
-}
-
 fn strict_cc(file: &Path) {
     let o = Command::new("cc")
         .args(["-std=c11", "-Wall", "-Wextra", "-Werror", "-fsyntax-only"])
@@ -183,6 +154,42 @@ fn generated_c_is_warning_free() {
     std::fs::write(&c, dovc::compile_to_c(extra).unwrap()).unwrap();
     strict_cc(&c);
     strict_cc(&dir.join("dov_rt.c"));
+}
+
+#[test]
+fn fmt_cli_check_and_rewrite() {
+    let f = temp_src("messy.dov", "fn main(){print(1);}\n");
+    let o = dovc(&["fmt", "--check", &f]);
+    assert_eq!(o.status.code(), Some(1));
+    assert!(String::from_utf8_lossy(&o.stderr).contains("is not formatted"));
+    assert!(dovc(&["fmt", &f]).status.success());
+    assert_eq!(
+        std::fs::read_to_string(&f).unwrap(),
+        "fn main() {\n    print(1);\n}\n"
+    );
+    assert!(dovc(&["fmt", "--check", &f]).status.success());
+    let bad = temp_src("bad.dov", "fn main( {\n");
+    let o = dovc(&["fmt", &bad]);
+    assert_eq!(o.status.code(), Some(1));
+    assert!(String::from_utf8_lossy(&o.stderr).contains("= hint: "));
+}
+
+#[test]
+fn examples_are_formatted() {
+    for ex in ["hello", "agent_counter", "ffi"] {
+        let o = dovc(&["fmt", "--check", &format!("examples/{ex}.dov")]);
+        assert!(o.status.success(), "{ex}: {}", String::from_utf8_lossy(&o.stderr));
+    }
+}
+
+#[test]
+fn build_errors_render_full_diagnostics() {
+    let f = temp_src("err.dov", "fn main() {\n    let x = 1;\n    x = 2;\n}\n");
+    let o = dovc(&["run", &f]);
+    assert_eq!(o.status.code(), Some(1));
+    let e = String::from_utf8_lossy(&o.stderr);
+    assert!(e.contains(":3:5: error: cannot assign to immutable binding `x`"), "{e}");
+    assert!(e.contains("3 |     x = 2;\n  |     ^\n  = hint: declare it with `var x`"), "{e}");
 }
 
 #[test]

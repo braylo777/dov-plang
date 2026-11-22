@@ -1,0 +1,13 @@
+// file header
+
+// about main
+fn main() { // opens main
+    let x = 1;   // keep me
+    // before close
+} // after close
+// between items
+agent A {
+    // inside agent
+    on h() {}
+}
+// last line

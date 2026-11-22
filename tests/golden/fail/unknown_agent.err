@@ -1,0 +1,5 @@
+tests/golden/fail/unknown_agent.dov:3:13: error: unknown agent `Countr`
+  |
+3 |     let c = spawn Countr;
+  |             ^
+  = hint: did you mean `Counter`?

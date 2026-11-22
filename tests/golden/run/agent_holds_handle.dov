@@ -1,0 +1,19 @@
+agent Sink {
+    on take(v: i64) {
+        print("sink got ", v);
+    }
+}
+
+agent Source {
+    let out = spawn Sink;
+
+    on emit(v: i64) {
+        send out.take(v + 1);
+    }
+}
+
+fn main() {
+    let s = spawn Source;
+    send s.emit(1);
+    send s.emit(2);
+}

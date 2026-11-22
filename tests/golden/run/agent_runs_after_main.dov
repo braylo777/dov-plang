@@ -1,0 +1,11 @@
+agent Logger {
+    on log(s: str) {
+        print("log: ", s);
+    }
+}
+
+fn main() {
+    let l = spawn Logger;
+    send l.log("first");
+    print("main is done");
+}

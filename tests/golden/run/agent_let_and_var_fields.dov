@@ -1,0 +1,21 @@
+agent Account {
+    let owner = "ana";
+    let limit: i64 = 100;
+    var balance = 0;
+
+    on deposit(n: i64) {
+        if balance + n > limit {
+            print(owner, ": over limit, rejected ", n);
+            return;
+        }
+        balance = balance + n;
+        print(owner, ": balance ", balance);
+    }
+}
+
+fn main() {
+    let a = spawn Account;
+    send a.deposit(60);
+    send a.deposit(50);
+    send a.deposit(40);
+}

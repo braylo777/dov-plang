@@ -1,0 +1,12 @@
+agent Divider {
+    on div(a: i64, b: i64) {
+        print(a, " / ", b, " = ", a / b);
+    }
+}
+
+fn main() {
+    let d = spawn Divider;
+    send d.div(9, 3);
+    send d.div(1, 0);
+    send d.div(4, 2);
+}

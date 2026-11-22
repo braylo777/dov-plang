@@ -1,0 +1,5 @@
+tests/golden/fail/duplicate_field.dov:3:5: error: duplicate field `n`
+  |
+3 |     let n = 1;
+  |     ^
+  = hint: each field in an agent needs its own name

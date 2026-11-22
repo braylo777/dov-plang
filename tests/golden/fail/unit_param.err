@@ -1,0 +1,5 @@
+tests/golden/fail/unit_param.dov:1:6: error: parameters cannot have type `()`
+  |
+1 | fn f(x: ()) {}
+  |      ^
+  = hint: remove the parameter; `()` carries no value

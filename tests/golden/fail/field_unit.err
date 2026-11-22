@@ -1,0 +1,5 @@
+tests/golden/fail/field_unit.dov:2:5: error: fields cannot have type `()`
+  |
+2 |     let x = print(1);
+  |     ^
+  = hint: a field needs a value of type i64, bool, str or an agent handle
