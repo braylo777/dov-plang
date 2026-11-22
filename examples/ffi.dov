@@ -1,0 +1,20 @@
+// ffi.dov — call C directly. `labs` comes from the C standard library.
+extern "C" fn labs(x: i64) -> i64;
+
+fn fib(n: i64) -> i64 {
+    var a = 0;
+    var b = 1;
+    var i = 0;
+    while i < n {
+        let next = a + b;
+        a = b;
+        b = next;
+        i = i + 1;
+    }
+    return a;
+}
+
+fn main() {
+    print("labs(-42) = ", labs(-42));
+    print("fib(50) = ", fib(50));
+}

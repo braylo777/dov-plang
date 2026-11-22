@@ -1,0 +1,10 @@
+[package]
+name = "dovc"
+description = "Compiler for .dov pLang: a rewritten C/C++ for modern-day agentic immutability."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]

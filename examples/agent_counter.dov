@@ -1,0 +1,33 @@
+// agent_counter.dov — an agent owns mutable state; everyone else sends it
+// immutable messages. No locks, no shared mutation, deterministic order.
+
+agent Counter {
+    var total: i64 = 0;
+    let name = "counter";
+
+    on add(n: i64) {
+        total = total + n;
+    }
+
+    on report(to: Logger) {
+        send to.log(name, total);
+    }
+}
+
+agent Logger {
+    var lines = 0;
+
+    on log(who: str, value: i64) {
+        lines = lines + 1;
+        print("[", lines, "] ", who, " total = ", value);
+    }
+}
+
+fn main() {
+    let c = spawn Counter;
+    let log = spawn Logger;
+    send c.add(5);
+    send c.add(10);
+    send c.add(27);
+    send c.report(log);
+}

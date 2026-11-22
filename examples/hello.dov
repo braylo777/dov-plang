@@ -1,0 +1,4 @@
+// hello.dov — the first .dov program.
+fn main() {
+    print("Hello, .dov!");
+}

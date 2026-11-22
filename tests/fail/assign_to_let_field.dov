@@ -1,0 +1,8 @@
+// expect: error: cannot assign to immutable field `limit`
+agent A {
+    let limit = 10;
+    on bump() {
+        limit = limit + 1;
+    }
+}
+fn main() {}
