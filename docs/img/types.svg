@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" width="900" height="340">
+<style>text{font-family:Helvetica,Arial,sans-serif;font-size:14px;fill:#1f2933}.t{font-size:16px;font-weight:bold}.s{font-size:12px;fill:#52606d}.m{font-family:Menlo,Consolas,monospace;font-size:12px}rect.b{fill:#eef4fb;stroke:#2f6fb3;stroke-width:1.5}rect.g{fill:#eefaf1;stroke:#2f8a4b;stroke-width:1.5}rect.o{fill:#fff6e8;stroke:#c27c0e;stroke-width:1.5}line,path.a{stroke:#3e4c59;stroke-width:1.5;fill:none}</style><defs><marker id="ar" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 z" fill="#3e4c59"/></marker></defs>
+<rect width="900" height="340" fill="#ffffff"/>
+<text x="20" y="28" class="t">The .dov type lattice (v0.3): no subtyping, no implicit conversions</text>
+<rect class="o" x="380" y="50" width="140" height="44" rx="6"/><text x="450" y="70" text-anchor="middle">value types</text><text x="450" y="86" text-anchor="middle" class="s">copied on every use</text>
+<rect class="b" x="30" y="140" width="150" height="56" rx="6"/><text x="105" y="164" text-anchor="middle">scalars</text><text x="105" y="182" text-anchor="middle" class="m">i64  bool</text>
+<rect class="b" x="200" y="140" width="150" height="56" rx="6"/><text x="275" y="164" text-anchor="middle">heap views</text><text x="275" y="182" text-anchor="middle" class="m">str  [T]</text>
+<rect class="b" x="370" y="140" width="160" height="56" rx="6"/><text x="450" y="164" text-anchor="middle">records</text><text x="450" y="182" text-anchor="middle" class="m">struct S&lt;T…&gt;</text>
+<rect class="b" x="550" y="140" width="160" height="56" rx="6"/><text x="630" y="164" text-anchor="middle">tagged unions</text><text x="630" y="182" text-anchor="middle" class="m">enum E&lt;T…&gt;</text>
+<rect class="b" x="730" y="140" width="150" height="56" rx="6"/><text x="805" y="164" text-anchor="middle">agent handles</text><text x="805" y="182" text-anchor="middle" class="m">A</text>
+<line x1="450" y1="94" x2="105" y2="138" marker-end="url(#ar)"/><line x1="450" y1="94" x2="275" y2="138" marker-end="url(#ar)"/><line x1="450" y1="94" x2="450" y2="138" marker-end="url(#ar)"/><line x1="450" y1="94" x2="630" y2="138" marker-end="url(#ar)"/><line x1="450" y1="94" x2="805" y2="138" marker-end="url(#ar)"/>
+<rect class="g" x="200" y="240" width="250" height="60" rx="6"/><text x="325" y="264" text-anchor="middle">prelude</text><text x="325" y="282" text-anchor="middle" class="m">Option&lt;T&gt;  Result&lt;T, E&gt;</text>
+<line x1="590" y1="196" x2="420" y2="238" marker-end="url(#ar)"/>
+<rect class="o" x="500" y="240" width="380" height="60" rx="6"/><text x="690" y="262" text-anchor="middle">checker only</text><text x="690" y="282" text-anchor="middle" class="m">T (opaque param)   _ (inference variable)</text>
+<text x="30" y="226" class="s">() is a return type only.  == works on i64, bool, str.  Heap bytes and items are immutable.</text>
+</svg>

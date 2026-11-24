@@ -3,6 +3,45 @@
 All notable changes to `.dov` pLang and `dovc`. Versions follow semver; before 1.0, a minor bump
 may break programs (each break is listed here).
 
+## 0.3.0 — 2026-11-24 (Phase 1: the type core)
+
+### Added
+- **Structs** (value types): literals `P { x: 1 }`, field reads, field assignment through a `var`
+  root (`p.a.x = 1;`). A struct may contain itself only through a slice.
+- **Enums with payloads** and **`match`** (statement, block arms, one-level patterns): variants
+  `E::V(a, _)`, literals and `_`; exhaustiveness and unreachable-arm checks; a `match` whose arms
+  all return counts for the return-path rule. Lowered to tagged unions and a C `switch`.
+- **Generics** on `fn`, `struct` and `enum`, checked once with opaque type parameters, inferred
+  from arguments and the expected type (unification), and monomorphized per concrete instance.
+- **Prelude** (written in .dov): `Option<T>`, `Result<T, E>`, `is_some`, `is_none`, `unwrap`,
+  `unwrap_or`, `is_ok`, `is_err`, `unwrap_ok`, `unwrap_err`, `ok_or`. Bare `Some`/`None`/`Ok`/`Err`.
+- **Strings and slices**: `str` now carries its length; `[T]` slices; `s[i]`, `s[a..b]`, `xs[i]`,
+  `xs[a..b]`, `len`, `append` (amortized O(1), never changes a visible value), `concat`, `to_str`,
+  `char_of`, `panic`. All indexing is bounds-checked (panic, exit 101).
+- **`defer`** (statement or block): runs at block exit and before `return`, latest first.
+- **Modules**: `import "file.dov";` merges items into one namespace; each file loads once (cycles
+  are fine); diagnostics name the file. `Pos` carries a file id.
+- `dovc fmt` formats all of the new syntax (generics, struct literals on one line, slices, `match`).
+- 12 examples (`make examples`, snapshot-tested), including `examples/json.dov`, a ~630-line JSON
+  parser and printer. 4 agent examples also pass under `-fsanitize=thread` (`make tsan`).
+- Dependency-free property tests (`tests/prop.rs`), checker unit tests, golden cases for every
+  feature. Tests: 192 → see the README table (generated from `results/metrics.json`).
+- `bench/run.py` (compile time per 1,000 lines; 4 kernels vs hand-written C), `scripts/metrics.py`,
+  `scripts/readme_numbers.py --check` (run in CI), `docs/ARCHITECTURE.md` + PDF + 5 SVG diagrams.
+- CI: rustfmt, clippy `-D warnings`, coverage ≥ 90% lines (cargo-llvm-cov), TSan, README check.
+
+### Changed (breaking)
+- New keywords: `struct`, `enum`, `match`, `import`, `defer`. New built-in names: `panic`, `len`,
+  `append`, `concat`, `to_str`, `char_of`, and the prelude names; programs that defined them must rename.
+- `str` is `{pointer, length}` in C (`dov_str`), so a literal with `\0` keeps its full length for
+  `len`, `==` and `print`. `extern "C"` still receives a NUL-terminated `const char *`.
+- `+` on a `str`: the hint now points to `concat`. Several messages and hints are
+  reworded to mention the new types.
+
+### Changed
+- Checked arithmetic and bounds checks are `static inline` in `dov_rt.h` (much faster kernels).
+- `dov_panic` is `_Noreturn`.
+
 ## 0.2.0 — 2026-11-22 (Phase 0: foundations)
 
 ### Added

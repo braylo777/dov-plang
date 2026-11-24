@@ -1,5 +1,6 @@
-# CI for .dov pLang: build, unit + e2e tests, golden suite (strict C + ASan/UBSan),
-# and `dovc fmt --check` on the examples. Runs on macOS (clang) and Ubuntu (gcc).
+# CI for .dov pLang: rustfmt, clippy, build, the whole test suite (unit, e2e, property and golden:
+# strict C + ASan/UBSan, agent examples under TSan), `make examples`, coverage and the README check.
+# Runs on macOS (clang) and Ubuntu (gcc).
 name: ci
 
 on:
@@ -21,13 +22,15 @@ jobs:
     env:
       CARGO_TERM_COLOR: always
       CARGO_INCREMENTAL: "0"
-      # Fail instead of skipping if the sanitizer runtime is missing.
+      # Fail instead of skipping if a sanitizer runtime is missing.
       DOV_REQUIRE_SAN: "1"
     steps:
       - uses: actions/checkout@v4
 
       - name: Rust toolchain
-        run: rustup toolchain install stable --profile minimal && rustup default stable
+        run: |
+          rustup toolchain install stable --profile minimal -c rustfmt -c clippy
+          rustup default stable
 
       - name: Tool versions
         run: |
@@ -35,21 +38,41 @@ jobs:
           cargo --version
           cc --version
 
+      - name: rustfmt
+        run: cargo fmt --all --check
+
+      - name: clippy
+        run: cargo clippy --all-targets --locked -- -D warnings
+
       - name: Build (release)
         run: cargo build --release --locked
 
-      - name: Unit and e2e tests
-        run: cargo test --locked --lib --bins --test e2e
-
-      - name: Golden suite (run / fail / fmt; strict C + ASan/UBSan)
-        run: cargo test --locked --test golden
+      - name: Tests (unit, e2e, property, golden)
+        run: cargo test --locked
 
       - name: Examples are formatted
         run: ./target/release/dovc fmt --check examples/*.dov
 
-      - name: Examples run
+      - name: Examples match their snapshots
+        run: make examples
+
+      - name: Agent examples under ThreadSanitizer
+        run: make tsan
+
+      - name: README numbers equal results/metrics.json
+        run: python3 scripts/readme_numbers.py --check
+
+  coverage:
+    name: coverage (ubuntu, >= 90% lines)
+    runs-on: ubuntu-latest
+    env:
+      CARGO_TERM_COLOR: always
+    steps:
+      - uses: actions/checkout@v4
+      - name: Rust toolchain
         run: |
-          for f in examples/*.dov; do
-            echo "== $f"
-            ./target/release/dovc run "$f"
-          done
+          rustup toolchain install stable --profile minimal -c llvm-tools-preview
+          rustup default stable
+      - uses: taiki-e/install-action@cargo-llvm-cov
+      - name: Coverage
+        run: cargo llvm-cov --locked --summary-only --fail-under-lines 90

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 260" width="900" height="260">
+<style>text{font-family:Helvetica,Arial,sans-serif;font-size:14px;fill:#1f2933}.t{font-size:16px;font-weight:bold}.s{font-size:12px;fill:#52606d}.m{font-family:Menlo,Consolas,monospace;font-size:12px}rect.b{fill:#eef4fb;stroke:#2f6fb3;stroke-width:1.5}rect.g{fill:#eefaf1;stroke:#2f8a4b;stroke-width:1.5}rect.o{fill:#fff6e8;stroke:#c27c0e;stroke-width:1.5}line,path.a{stroke:#3e4c59;stroke-width:1.5;fill:none}</style><defs><marker id="ar" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 z" fill="#3e4c59"/></marker></defs>
+<rect width="900" height="260" fill="#ffffff"/>
+<text x="20" y="28" class="t">dovc pipeline: .dov source to native binary</text>
+<rect class="o" x="20" y="60" width="120" height="60" rx="6"/><text x="80" y="86" text-anchor="middle">prelude.dov</text><text x="80" y="104" text-anchor="middle" class="s">+ file + imports</text>
+<rect class="b" x="170" y="60" width="100" height="60" rx="6"/><text x="220" y="86" text-anchor="middle">lexer</text><text x="220" y="104" text-anchor="middle" class="s">tokens, Pos.file</text>
+<rect class="b" x="300" y="60" width="100" height="60" rx="6"/><text x="350" y="86" text-anchor="middle">parser</text><text x="350" y="104" text-anchor="middle" class="s">AST</text>
+<rect class="b" x="430" y="60" width="130" height="60" rx="6"/><text x="495" y="82" text-anchor="middle">checker</text><text x="495" y="99" text-anchor="middle" class="s">types, inference,</text><text x="495" y="113" text-anchor="middle" class="s">immutability, match</text>
+<rect class="b" x="590" y="60" width="120" height="60" rx="6"/><text x="650" y="82" text-anchor="middle">codegen</text><text x="650" y="99" text-anchor="middle" class="s">monomorphize,</text><text x="650" y="113" text-anchor="middle" class="s">C11 text</text>
+<rect class="g" x="740" y="60" width="140" height="60" rx="6"/><text x="810" y="86" text-anchor="middle">cc -std=c11 -O2</text><text x="810" y="104" text-anchor="middle" class="s">+ dov_rt.c → binary</text>
+<line x1="140" y1="90" x2="168" y2="90" marker-end="url(#ar)"/><line x1="270" y1="90" x2="298" y2="90" marker-end="url(#ar)"/><line x1="400" y1="90" x2="428" y2="90" marker-end="url(#ar)"/><line x1="560" y1="90" x2="588" y2="90" marker-end="url(#ar)"/><line x1="710" y1="90" x2="738" y2="90" marker-end="url(#ar)"/>
+<rect class="o" x="300" y="170" width="260" height="56" rx="6"/><text x="430" y="194" text-anchor="middle">Diag { pos, msg, hint }</text><text x="430" y="212" text-anchor="middle" class="s">file:line:col, source line, caret, hint</text>
+<path class="a" d="M220,120 L220,198 L298,198" marker-end="url(#ar)"/><line x1="350" y1="120" x2="350" y2="168" marker-end="url(#ar)"/><line x1="495" y1="120" x2="495" y2="168" marker-end="url(#ar)"/>
+<rect class="g" x="610" y="170" width="200" height="56" rx="6"/><text x="710" y="194" text-anchor="middle">dovc fmt</text><text x="710" y="212" text-anchor="middle" class="s">tokens + comments + layout</text>
+<path class="a" d="M350,140 L600,140 L700,168" marker-end="url(#ar)"/>
+</svg>

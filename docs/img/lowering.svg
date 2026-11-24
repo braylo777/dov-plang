@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 380" width="900" height="380">
+<style>text{font-family:Helvetica,Arial,sans-serif;font-size:14px;fill:#1f2933}.t{font-size:16px;font-weight:bold}.s{font-size:12px;fill:#52606d}.m{font-family:Menlo,Consolas,monospace;font-size:12px}rect.b{fill:#eef4fb;stroke:#2f6fb3;stroke-width:1.5}rect.g{fill:#eefaf1;stroke:#2f8a4b;stroke-width:1.5}rect.o{fill:#fff6e8;stroke:#c27c0e;stroke-width:1.5}line,path.a{stroke:#3e4c59;stroke-width:1.5;fill:none}</style><defs><marker id="ar" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 z" fill="#3e4c59"/></marker></defs>
+<rect width="900" height="380" fill="#ffffff"/>
+<text x="20" y="28" class="t">Source → C, side by side (abridged)</text>
+<rect class="b" x="20" y="45" width="360" height="315" rx="6"/><text x="35" y="66" class="s">.dov</text>
+<text x="35" y="92" class="m">enum Shape { Circle(i64), Square(i64) }</text>
+<text x="35" y="126" class="m">fn area(s: Shape) -&gt; i64 {</text>
+<text x="35" y="146" class="m">    defer print("measured");</text>
+<text x="35" y="166" class="m">    match s {</text>
+<text x="35" y="186" class="m">        Shape::Circle(r) =&gt; {</text>
+<text x="35" y="206" class="m">            return 3 * r * r;</text>
+<text x="35" y="226" class="m">        }</text>
+<text x="35" y="246" class="m">        Shape::Square(a) =&gt; { … }</text>
+<text x="35" y="266" class="m">    }</text>
+<text x="35" y="286" class="m">}</text>
+<rect class="g" x="420" y="45" width="460" height="315" rx="6"/><text x="435" y="66" class="s">C11 (dovc emit-c)</text>
+<text x="435" y="86" class="m">struct dov_t_5Shape { int32_t tag; union {</text>
+<text x="435" y="102" class="m">  struct { int64_t a0; } v_Circle; … } u; };</text>
+<text x="435" y="126" class="m">static int64_t dov_fn_area(dov_t_5Shape v_s) {</text>
+<text x="435" y="146" class="m">  const dov_t_5Shape dov_m1 = v_s;</text>
+<text x="435" y="166" class="m">  switch (dov_m1.tag) {</text>
+<text x="435" y="186" class="m">  case 0: { const int64_t v_r = dov_m1.u.v_Circle.a0;</text>
+<text x="435" y="206" class="m">    const int64_t dov_ret2 =</text>
+<text x="435" y="222" class="m">      dov_mul(dov_mul(INT64_C(3), v_r, 10), v_r, 10);</text>
+<text x="435" y="242" class="m">    { dov_print_str(DOV_S("measured", 8)); … }</text>
+<text x="435" y="262" class="m">    return dov_ret2; }</text>
+<text x="435" y="282" class="m">  case 1: { … } }</text>
+<text x="435" y="302" class="m">  dov_panic("missing return in `area`", 6);</text>
+<text x="435" y="322" class="m">}</text>
+<line x1="380" y1="92" x2="418" y2="92" marker-end="url(#ar)"/><line x1="380" y1="166" x2="418" y2="166" marker-end="url(#ar)"/><line x1="380" y1="206" x2="418" y2="214" marker-end="url(#ar)"/><line x1="380" y1="146" x2="418" y2="240" marker-end="url(#ar)"/>
+</svg>

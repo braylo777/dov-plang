@@ -6,6 +6,8 @@
 2. Kernels: each bench/kernels/NAME.dov vs a hand-written NAME.c, both built with `cc -O2`.
    Median wall time of 5 runs; outputs must match. .dov keeps its checked arithmetic and
    bounds checks, the C versions do not.
+On macOS run it with a native Python (`/usr/bin/python3`): an x86_64 Python under Rosetta
+would build the C kernels for x86_64.
 """
 import json, os, platform, statistics, subprocess, sys, tempfile, time
 

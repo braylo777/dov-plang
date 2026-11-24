@@ -1,35 +1,35 @@
 {
   "compile": {
     "lines": 10068,
-    "emit_c_ms": 29.9,
-    "ms_per_1k_lines": 2.97
+    "emit_c_ms": 26.8,
+    "ms_per_1k_lines": 2.67
   },
   "kernels": {
     "fib": {
-      "dov_ms": 25.2,
-      "c_ms": 19.0,
-      "ratio": 1.33,
+      "dov_ms": 13.2,
+      "c_ms": 10.6,
+      "ratio": 1.24,
       "output": "2178309"
     },
     "primes": {
-      "dov_ms": 35.6,
-      "c_ms": 28.6,
-      "ratio": 1.25,
+      "dov_ms": 19.2,
+      "c_ms": 18.6,
+      "ratio": 1.03,
       "output": "25997"
     },
     "collatz": {
-      "dov_ms": 119.0,
-      "c_ms": 110.5,
-      "ratio": 1.08,
+      "dov_ms": 117.5,
+      "c_ms": 82.4,
+      "ratio": 1.43,
       "output": "410011 448"
     },
     "slices": {
-      "dov_ms": 54.3,
-      "c_ms": 22.7,
-      "ratio": 2.39,
+      "dov_ms": 18.5,
+      "c_ms": 7.5,
+      "ratio": 2.46,
       "output": "2000000 999000000"
     }
   },
   "cc": "Apple clang version 21.0.0 (clang-2100.1.1.101)",
-  "machine": "Darwin x86_64 Apple M2 Pro"
+  "machine": "Darwin arm64 Apple M2 Pro"
 }
