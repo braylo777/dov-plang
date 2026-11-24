@@ -40,8 +40,8 @@ impl Elem<'_> {
 /// Format `.dov` source. The source must lex and parse (it need not type-check).
 pub fn format(src: &str) -> Result<String> {
     let (toks, comments) = lex_with_comments(src)?;
-    parser::parse(toks.clone())?;
-    let out = layout(src, &toks, &comments);
+    let (_, lay) = parser::parse_with_layout(toks.clone())?;
+    let out = layout(src, &toks, &comments, &lay);
     // Safety net: formatting must not change tokens or comments.
     let same = match lex_with_comments(&out) {
         Ok((t2, c2)) => {
@@ -77,26 +77,58 @@ fn source_text(lines: &[Vec<char>], t: &Token) -> String {
 fn ends_operand(t: &Tok) -> bool {
     matches!(
         t,
-        Tok::Ident(_) | Tok::Int(_) | Tok::Str(_) | Tok::True | Tok::False | Tok::RParen
+        Tok::Ident(_)
+            | Tok::Int(_)
+            | Tok::Str(_)
+            | Tok::True
+            | Tok::False
+            | Tok::RParen
+            | Tok::RBracket
     )
 }
 
-fn space_between(prev: &Tok, prev_unary: bool, cur: &Tok) -> bool {
-    if matches!(
-        cur,
-        Tok::RParen | Tok::Comma | Tok::Semi | Tok::Dot | Tok::Colon
-    ) {
+/// The previous token as the spacing rules see it.
+struct Prev<'a> {
+    tok: &'a Tok,
+    unary: bool,
+    /// A `<` or `>` that brackets type parameters or arguments.
+    angle: bool,
+}
+
+fn space_between(prev: &Prev, cur: &Tok, cur_angle: bool) -> bool {
+    if cur_angle
+        || matches!(
+            cur,
+            Tok::RParen
+                | Tok::Comma
+                | Tok::Semi
+                | Tok::Dot
+                | Tok::Colon
+                | Tok::RBracket
+                | Tok::ColonColon
+                | Tok::DotDot
+        )
+    {
         return false;
     }
     // Keep `- -x` apart so it never reads like a `--` decrement.
-    if prev_unary && *prev == Tok::Minus && *cur == Tok::Minus {
+    if prev.unary && *prev.tok == Tok::Minus && *cur == Tok::Minus {
         return true;
     }
-    if matches!(prev, Tok::LParen | Tok::Dot) || prev_unary {
+    if matches!(
+        prev.tok,
+        Tok::LParen | Tok::Dot | Tok::LBracket | Tok::ColonColon | Tok::DotDot
+    ) || prev.unary
+        || (prev.angle && *prev.tok == Tok::Lt)
+    {
         return false;
     }
     if *cur == Tok::LParen {
-        return !matches!(prev, Tok::Ident(_));
+        return !(matches!(prev.tok, Tok::Ident(_)) || prev.angle);
+    }
+    if *cur == Tok::LBracket {
+        // `xs[i]` indexes; `= [1, 2]` and `: [i64]` start a slice.
+        return !ends_operand(prev.tok);
     }
     true
 }
@@ -128,7 +160,7 @@ impl Out {
     }
 }
 
-fn layout(src: &str, toks: &[Token], comments: &[Comment]) -> String {
+fn layout(src: &str, toks: &[Token], comments: &[Comment], lay: &parser::Layout) -> String {
     let lines: Vec<Vec<char>> = src.split('\n').map(|l| l.chars().collect()).collect();
     let mut elems: Vec<Elem> = toks
         .iter()
@@ -146,6 +178,8 @@ fn layout(src: &str, toks: &[Token], comments: &[Comment]) -> String {
     };
     let mut prev: Option<Tok> = None; // last token written
     let mut prev_unary = false;
+    let mut prev_angle = false;
+    let mut prev_inline_open = false;
     let mut last_line = 0u32; // source line of the last element written
     let mut last_tok_line = 0u32; // source line of the last token written
     let mut pending_nl = false;
@@ -205,7 +239,31 @@ fn layout(src: &str, toks: &[Token], comments: &[Comment]) -> String {
         let text = source_text(&lines, t);
         let next = elems.get(k + 1);
 
+        let inline = lay.inline_braces.contains(&t.pos);
         match &t.tok {
+            // Struct literal braces stay on the line: `P { x: 1 }`, `P {}`.
+            Tok::LBrace if inline => {
+                if !o.cur.is_empty() {
+                    o.push(" ");
+                }
+                o.push("{");
+                prev = Some(Tok::LBrace);
+                prev_inline_open = true;
+                prev_unary = false;
+                prev_angle = false;
+                continue;
+            }
+            Tok::RBrace if inline => {
+                if !prev_inline_open {
+                    o.push(" ");
+                }
+                o.push("}");
+                prev = Some(Tok::RBrace);
+                prev_inline_open = false;
+                prev_unary = false;
+                prev_angle = false;
+                continue;
+            }
             Tok::LBrace if next.is_some_and(|n| n.is_tok(&Tok::RBrace)) => {
                 if !o.cur.is_empty() {
                     o.push(" ");
@@ -239,23 +297,34 @@ fn layout(src: &str, toks: &[Token], comments: &[Comment]) -> String {
                     Tok::Minus => !prev.as_ref().is_some_and(ends_operand),
                     _ => false,
                 };
+                let angle = matches!(tok, Tok::Lt | Tok::Gt) && lay.angles.contains(&t.pos);
                 if !o.cur.is_empty()
-                    && prev
-                        .as_ref()
-                        .is_some_and(|p| space_between(p, prev_unary, tok))
+                    && prev.as_ref().is_some_and(|p| {
+                        let p = Prev {
+                            tok: p,
+                            unary: prev_unary,
+                            angle: prev_angle,
+                        };
+                        space_between(&p, tok, angle)
+                    })
                 {
                     o.push(" ");
                 }
                 o.push(&text);
                 prev_unary = unary;
+                prev_angle = angle;
+                prev_inline_open = false;
                 prev = Some(tok.clone());
-                if *tok == Tok::Semi {
+                // `;` ends a line, and so does a `,` between struct fields or enum variants.
+                if *tok == Tok::Semi || (*tok == Tok::Comma && lay.break_commas.contains(&t.pos)) {
                     pending_nl = true;
                 }
                 continue;
             }
         }
         prev_unary = false;
+        prev_angle = false;
+        prev_inline_open = false;
     }
     o.newline();
     o.text
