@@ -1,4 +1,4 @@
-tests/golden/fail/parse_top_level_statement.dov:1:1: error: expected `fn`, `extern` or `agent`, found keyword `let`
+tests/golden/fail/parse_top_level_statement.dov:1:1: error: expected `fn`, `extern`, `agent`, `struct`, `enum` or `import`, found keyword `let`
   |
 1 | let x = 1;
   | ^

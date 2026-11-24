@@ -1,16 +1,42 @@
-//! Recursive-descent parser: tokens -> AST.
+//! Recursive-descent parser: tokens -> AST (v0.3 grammar, see docs/SPEC.md §2).
 
 use crate::ast::*;
 use crate::diag::{Diag, Pos, Result};
 use crate::lexer::{is_keyword, spell, Tok, Token};
+use std::collections::HashSet;
+
+/// Layout facts the formatter needs and cannot see in the tokens alone.
+#[derive(Debug, Default, Clone)]
+pub struct Layout {
+    /// `<` / `>` tokens that bracket type parameters or arguments (no spaces around them).
+    pub angles: HashSet<Pos>,
+    /// `{` / `}` of struct literals (kept on one line).
+    pub inline_braces: HashSet<Pos>,
+    /// `,` that end a line (struct fields, enum variants).
+    pub break_commas: HashSet<Pos>,
+}
 
 pub struct Parser {
     toks: Vec<Token>,
     i: usize,
+    /// Inside `if`/`while`/`match` heads a `Name {` is a block, not a struct literal.
+    no_struct: bool,
+    layout: Layout,
 }
 
 pub fn parse(toks: Vec<Token>) -> Result<Program> {
-    Parser { toks, i: 0 }.program()
+    Ok(parse_with_layout(toks)?.0)
+}
+
+pub fn parse_with_layout(toks: Vec<Token>) -> Result<(Program, Layout)> {
+    let mut p = Parser {
+        toks,
+        i: 0,
+        no_struct: false,
+        layout: Layout::default(),
+    };
+    let prog = p.program()?;
+    Ok((prog, p.layout))
 }
 
 fn describe(t: &Tok) -> String {
@@ -29,13 +55,16 @@ fn hint_for(want: &Tok) -> &'static str {
     match want {
         Tok::Semi => "end the statement with `;`",
         Tok::RParen => "close the list with `)`; separate items with `,`",
+        Tok::RBracket => "close with `]`; separate items with `,`",
         Tok::LParen => "add `(`: function, handler and call argument lists need parentheses",
         Tok::LBrace => "add `{` to start the block",
         Tok::RBrace => "add `}` to close the block",
-        Tok::Colon => "give the parameter a type, e.g. `n: i64`",
+        Tok::Colon => "give it a type, e.g. `n: i64`",
         Tok::Assign => "give it an initial value with `=`, e.g. `let x = 1;`",
         Tok::Dot => "write `send <handle>.<handler>(<args>);`",
         Tok::Fn => "write `extern \"C\" fn name(params) -> type;`",
+        Tok::FatArrow => "write each arm as `pattern => { ... }`",
+        Tok::Gt => "close the type list with `>`",
         _ => "check the syntax near here",
     }
 }
@@ -72,6 +101,7 @@ impl Parser {
         }
         let t = &self.toks[self.i - 1];
         Pos {
+            file: t.pos.file,
             line: t.pos.line,
             col: t.pos.col + t.len,
         }
@@ -80,7 +110,6 @@ impl Parser {
         if *self.peek() == t {
             Ok(self.advance().pos)
         } else {
-            // A missing `;` is reported right after the previous token, not at the next line.
             let pos = if t == Tok::Semi {
                 self.prev_end()
             } else {
@@ -113,6 +142,14 @@ impl Parser {
             }
         }
     }
+    /// Run `f` with the struct-literal restriction set to `on`.
+    fn with_no_struct<T>(&mut self, on: bool, f: impl FnOnce(&mut Self) -> Result<T>) -> Result<T> {
+        let saved = self.no_struct;
+        self.no_struct = on;
+        let r = f(self);
+        self.no_struct = saved;
+        r
+    }
 
     fn program(&mut self) -> Result<Program> {
         let mut items = Vec::new();
@@ -121,11 +158,31 @@ impl Parser {
                 Tok::Fn => Item::Fn(self.fn_decl()?),
                 Tok::Extern => Item::Extern(self.extern_fn()?),
                 Tok::Agent => Item::Agent(self.agent_decl()?),
+                Tok::Struct => Item::Struct(self.struct_decl()?),
+                Tok::Enum => Item::Enum(self.enum_decl()?),
+                Tok::Import => {
+                    let pos = self.advance().pos;
+                    let path = match self.peek().clone() {
+                        Tok::Str(s) => {
+                            self.advance();
+                            s
+                        }
+                        other => {
+                            return Err(Diag::new(
+                                self.pos(),
+                                format!("expected a file path string after `import`, found {}", describe(&other)),
+                                "write `import \"other.dov\";` (the path is relative to this file)",
+                            ))
+                        }
+                    };
+                    self.expect(Tok::Semi, "`;` after import")?;
+                    Item::Import(path, pos)
+                }
                 other => {
                     return Err(Diag::new(
                         self.pos(),
                         format!(
-                            "expected `fn`, `extern` or `agent`, found {}",
+                            "expected `fn`, `extern`, `agent`, `struct`, `enum` or `import`, found {}",
                             describe(other)
                         ),
                         "only declarations may appear at the top level; put statements inside `fn main() { ... }`",
@@ -136,17 +193,55 @@ impl Parser {
         Ok(Program { items })
     }
 
+    /// `<T, U>` after a declaration name.
+    fn tparams(&mut self) -> Result<Vec<String>> {
+        let mut out = Vec::new();
+        if *self.peek() != Tok::Lt {
+            return Ok(out);
+        }
+        let lt = self.advance().pos;
+        self.layout.angles.insert(lt);
+        loop {
+            let (n, _) = self.ident("a type parameter name")?;
+            out.push(n);
+            if !self.eat(&Tok::Comma) || *self.peek() == Tok::Gt {
+                break;
+            }
+        }
+        let gt = self.expect(Tok::Gt, "`>` after type parameters")?;
+        self.layout.angles.insert(gt);
+        Ok(out)
+    }
+
     fn ty(&mut self) -> Result<Type> {
         if self.eat(&Tok::LParen) {
             self.expect(Tok::RParen, "`)` in unit type `()`")?;
             return Ok(Type::Unit);
         }
+        if self.eat(&Tok::LBracket) {
+            let t = self.ty()?;
+            self.expect(Tok::RBracket, "`]` after slice element type")?;
+            return Ok(Type::Slice(Box::new(t)));
+        }
         let (name, _) = self.ident("a type")?;
-        Ok(match name.as_str() {
-            "i64" => Type::I64,
-            "bool" => Type::Bool,
-            "str" => Type::Str,
-            _ => Type::Agent(name),
+        let mut args = Vec::new();
+        if *self.peek() == Tok::Lt {
+            let lt = self.advance().pos;
+            self.layout.angles.insert(lt);
+            loop {
+                args.push(self.ty()?);
+                if !self.eat(&Tok::Comma) || *self.peek() == Tok::Gt {
+                    break;
+                }
+            }
+            let gt = self.expect(Tok::Gt, "`>` after type arguments")?;
+            self.layout.angles.insert(gt);
+        }
+        Ok(match (name.as_str(), args.is_empty()) {
+            ("i64", true) => Type::I64,
+            ("bool", true) => Type::Bool,
+            ("str", true) => Type::Str,
+            _ => Type::Named(name, args),
         })
     }
 
@@ -177,11 +272,13 @@ impl Parser {
     fn fn_decl(&mut self) -> Result<FnDecl> {
         let pos = self.expect(Tok::Fn, "`fn`")?;
         let (name, _) = self.ident("a function name")?;
+        let tparams = self.tparams()?;
         let params = self.params()?;
         let ret = self.ret_ty()?;
         let body = self.block()?;
         Ok(FnDecl {
             name,
+            tparams,
             params,
             ret,
             body,
@@ -222,6 +319,76 @@ impl Parser {
             name,
             params,
             ret,
+            pos,
+        })
+    }
+
+    fn struct_decl(&mut self) -> Result<StructDecl> {
+        let pos = self.expect(Tok::Struct, "`struct`")?;
+        let (name, _) = self.ident("a struct name")?;
+        let tparams = self.tparams()?;
+        self.expect(Tok::LBrace, "`{`")?;
+        let mut fields = Vec::new();
+        while *self.peek() != Tok::RBrace {
+            let (fname, fpos) = self.ident("a field name")?;
+            self.expect(Tok::Colon, "`:` after field name")?;
+            let ty = self.ty()?;
+            fields.push(Param {
+                name: fname,
+                ty,
+                pos: fpos,
+            });
+            if *self.peek() == Tok::Comma {
+                let c = self.advance().pos;
+                self.layout.break_commas.insert(c);
+            } else {
+                break;
+            }
+        }
+        self.expect(Tok::RBrace, "`}` (separate fields with `,`)")?;
+        Ok(StructDecl {
+            name,
+            tparams,
+            fields,
+            pos,
+        })
+    }
+
+    fn enum_decl(&mut self) -> Result<EnumDecl> {
+        let pos = self.expect(Tok::Enum, "`enum`")?;
+        let (name, _) = self.ident("an enum name")?;
+        let tparams = self.tparams()?;
+        self.expect(Tok::LBrace, "`{`")?;
+        let mut variants = Vec::new();
+        while *self.peek() != Tok::RBrace {
+            let (vname, vpos) = self.ident("a variant name")?;
+            let mut fields = Vec::new();
+            if self.eat(&Tok::LParen) {
+                while *self.peek() != Tok::RParen {
+                    fields.push(self.ty()?);
+                    if !self.eat(&Tok::Comma) {
+                        break;
+                    }
+                }
+                self.expect(Tok::RParen, "`)` after variant payload types")?;
+            }
+            variants.push(Variant {
+                name: vname,
+                fields,
+                pos: vpos,
+            });
+            if *self.peek() == Tok::Comma {
+                let c = self.advance().pos;
+                self.layout.break_commas.insert(c);
+            } else {
+                break;
+            }
+        }
+        self.expect(Tok::RBrace, "`}` (separate variants with `,`)")?;
+        Ok(EnumDecl {
+            name,
+            tparams,
+            variants,
             pos,
         })
     }
@@ -289,19 +456,21 @@ impl Parser {
 
     fn block(&mut self) -> Result<Block> {
         self.expect(Tok::LBrace, "`{`")?;
-        let mut stmts = Vec::new();
-        while *self.peek() != Tok::RBrace {
-            if *self.peek() == Tok::Eof {
-                return Err(Diag::new(
-                    self.pos(),
-                    "expected `}`, found end of file",
-                    "a block is not closed; add the missing `}`",
-                ));
+        self.with_no_struct(false, |p| {
+            let mut stmts = Vec::new();
+            while *p.peek() != Tok::RBrace {
+                if *p.peek() == Tok::Eof {
+                    return Err(Diag::new(
+                        p.pos(),
+                        "expected `}`, found end of file",
+                        "a block is not closed; add the missing `}`",
+                    ));
+                }
+                stmts.push(p.stmt()?);
             }
-            stmts.push(self.stmt()?);
-        }
-        self.expect(Tok::RBrace, "`}`")?;
-        Ok(stmts)
+            p.expect(Tok::RBrace, "`}`")?;
+            Ok(stmts)
+        })
     }
 
     fn stmt(&mut self) -> Result<Stmt> {
@@ -328,7 +497,7 @@ impl Parser {
             Tok::If => self.if_stmt()?,
             Tok::While => {
                 self.advance();
-                let cond = self.expr()?;
+                let cond = self.with_no_struct(true, |p| p.expr())?;
                 let body = self.block()?;
                 StmtKind::While { cond, body }
             }
@@ -344,7 +513,7 @@ impl Parser {
             }
             Tok::Send => {
                 self.advance();
-                let target = self.primary()?;
+                let target = self.postfix()?;
                 self.expect(Tok::Dot, "`.` then a handler name after `send <agent>`")?;
                 let (handler, handler_pos) = self.ident("a handler name")?;
                 let args = self.args()?;
@@ -356,25 +525,124 @@ impl Parser {
                     args,
                 }
             }
-            Tok::Ident(name) if *self.peek_at(1) == Tok::Assign => {
+            Tok::Match => {
                 self.advance();
+                let scrut = self.with_no_struct(true, |p| p.expr())?;
+                self.expect(Tok::LBrace, "`{` after the `match` value")?;
+                let mut arms = Vec::new();
+                while *self.peek() != Tok::RBrace {
+                    if *self.peek() == Tok::Eof {
+                        return Err(Diag::new(
+                            self.pos(),
+                            "expected `}`, found end of file",
+                            "the `match` is not closed; add the missing `}`",
+                        ));
+                    }
+                    let apos = self.pos();
+                    let pat = self.pattern()?;
+                    self.expect(Tok::FatArrow, "`=>` after the pattern")?;
+                    let body = self.block()?;
+                    arms.push(Arm {
+                        pat,
+                        body,
+                        pos: apos,
+                    });
+                }
+                self.expect(Tok::RBrace, "`}`")?;
+                StmtKind::Match { scrut, arms }
+            }
+            Tok::Defer => {
                 self.advance();
-                let value = self.expr()?;
-                self.expect(Tok::Semi, "`;`")?;
-                StmtKind::Assign { name, value }
+                let body = if *self.peek() == Tok::LBrace {
+                    self.block()?
+                } else {
+                    vec![self.stmt()?]
+                };
+                StmtKind::Defer(body)
             }
             _ => {
                 let e = self.expr()?;
-                self.expect(Tok::Semi, "`;`")?;
-                StmtKind::Expr(e)
+                if self.eat(&Tok::Assign) {
+                    let value = self.expr()?;
+                    self.expect(Tok::Semi, "`;`")?;
+                    StmtKind::Assign { target: e, value }
+                } else {
+                    self.expect(Tok::Semi, "`;`")?;
+                    StmtKind::Expr(e)
+                }
             }
         };
         Ok(Stmt { kind, pos })
     }
 
+    fn pattern(&mut self) -> Result<Pattern> {
+        let pos = self.pos();
+        Ok(match self.peek().clone() {
+            Tok::Int(v) => {
+                self.advance();
+                Pattern::Int(v)
+            }
+            Tok::Minus if matches!(self.peek_at(1), Tok::Int(_)) => {
+                self.advance();
+                let Tok::Int(v) = self.advance().tok else {
+                    unreachable!()
+                };
+                Pattern::Int(-v)
+            }
+            Tok::Str(s) => {
+                self.advance();
+                Pattern::Str(s)
+            }
+            Tok::True => {
+                self.advance();
+                Pattern::Bool(true)
+            }
+            Tok::False => {
+                self.advance();
+                Pattern::Bool(false)
+            }
+            Tok::Ident(n) if n == "_" => {
+                self.advance();
+                Pattern::Wild
+            }
+            Tok::Ident(first) => {
+                self.advance();
+                let (enum_name, variant) = if self.eat(&Tok::ColonColon) {
+                    let (v, _) = self.ident("a variant name after `::`")?;
+                    (Some(first), v)
+                } else {
+                    (None, first)
+                };
+                let mut binds = Vec::new();
+                if self.eat(&Tok::LParen) {
+                    while *self.peek() != Tok::RParen {
+                        let (b, bpos) = self.ident("a binding name or `_`")?;
+                        binds.push(if b == "_" { None } else { Some((b, bpos)) });
+                        if !self.eat(&Tok::Comma) {
+                            break;
+                        }
+                    }
+                    self.expect(Tok::RParen, "`)` after the bindings")?;
+                }
+                Pattern::Variant {
+                    enum_name,
+                    variant,
+                    binds,
+                }
+            }
+            other => {
+                return Err(Diag::new(
+                    pos,
+                    format!("expected a pattern, found {}", describe(&other)),
+                    "a pattern is `_`, a literal, or a variant like `Some(x)` / `Shape::Circle(r)`",
+                ))
+            }
+        })
+    }
+
     fn if_stmt(&mut self) -> Result<StmtKind> {
         self.expect(Tok::If, "`if`")?;
-        let cond = self.expr()?;
+        let cond = self.with_no_struct(true, |p| p.expr())?;
         let then = self.block()?;
         let els = if self.eat(&Tok::Else) {
             if *self.peek() == Tok::If {
@@ -394,15 +662,17 @@ impl Parser {
 
     fn args(&mut self) -> Result<Vec<Expr>> {
         self.expect(Tok::LParen, "`(`")?;
-        let mut a = Vec::new();
-        while *self.peek() != Tok::RParen {
-            a.push(self.expr()?);
-            if !self.eat(&Tok::Comma) {
-                break;
+        self.with_no_struct(false, |p| {
+            let mut a = Vec::new();
+            while *p.peek() != Tok::RParen {
+                a.push(p.expr()?);
+                if !p.eat(&Tok::Comma) {
+                    break;
+                }
             }
-        }
-        self.expect(Tok::RParen, "`)`")?;
-        Ok(a)
+            p.expect(Tok::RParen, "`)`")?;
+            Ok(a)
+        })
     }
 
     pub fn expr(&mut self) -> Result<Expr> {
@@ -461,7 +731,55 @@ impl Parser {
                 pos,
             });
         }
-        self.primary()
+        self.postfix()
+    }
+
+    /// A primary followed by `.field`, `[i]` or `[a..b]`. A `.name(` is left for `send`.
+    fn postfix(&mut self) -> Result<Expr> {
+        let mut e = self.primary()?;
+        loop {
+            match self.peek() {
+                Tok::Dot
+                    if matches!(self.peek_at(1), Tok::Ident(_))
+                        && *self.peek_at(2) != Tok::LParen =>
+                {
+                    let pos = self.advance().pos;
+                    let (f, _) = self.ident("a field name")?;
+                    e = Expr {
+                        kind: ExprKind::Field(Box::new(e), f),
+                        pos,
+                    };
+                }
+                Tok::LBracket => {
+                    let pos = self.advance().pos;
+                    let (a, b) = self.with_no_struct(false, |p| {
+                        let a = p.expr()?;
+                        let b = if p.eat(&Tok::DotDot) {
+                            Some(p.expr()?)
+                        } else {
+                            None
+                        };
+                        p.expect(Tok::RBracket, "`]`")?;
+                        Ok((a, b))
+                    })?;
+                    e = Expr {
+                        kind: match b {
+                            None => ExprKind::Index(Box::new(e), Box::new(a)),
+                            Some(b) => ExprKind::Range(Box::new(e), Box::new(a), Box::new(b)),
+                        },
+                        pos,
+                    };
+                }
+                _ => return Ok(e),
+            }
+        }
+    }
+
+    /// Is the parser at `{ }` or `{ name :`, the start of a struct literal body?
+    fn struct_lit_ahead(&self) -> bool {
+        *self.peek() == Tok::LBrace
+            && (*self.peek_at(1) == Tok::RBrace
+                || (matches!(self.peek_at(1), Tok::Ident(_)) && *self.peek_at(2) == Tok::Colon))
     }
 
     fn primary(&mut self) -> Result<Expr> {
@@ -490,25 +808,64 @@ impl Parser {
             }
             Tok::LParen => {
                 self.advance();
-                let e = self.expr()?;
+                let e = self.with_no_struct(false, |p| p.expr())?;
                 self.expect(Tok::RParen, "`)`")?;
                 return Ok(e);
             }
+            Tok::LBracket => {
+                self.advance();
+                let items = self.with_no_struct(false, |p| {
+                    let mut items = Vec::new();
+                    while *p.peek() != Tok::RBracket {
+                        items.push(p.expr()?);
+                        if !p.eat(&Tok::Comma) {
+                            break;
+                        }
+                    }
+                    p.expect(Tok::RBracket, "`]`")?;
+                    Ok(items)
+                })?;
+                ExprKind::Array(items)
+            }
             Tok::Ident(name) => {
                 self.advance();
-                if *self.peek() == Tok::LParen {
+                if self.eat(&Tok::ColonColon) {
+                    let (v, _) = self.ident("a variant name after `::`")?;
+                    let args = if *self.peek() == Tok::LParen {
+                        self.args()?
+                    } else {
+                        Vec::new()
+                    };
+                    ExprKind::Variant(name, v, args)
+                } else if *self.peek() == Tok::LParen {
                     ExprKind::Call(name, self.args()?)
+                } else if !self.no_struct && self.struct_lit_ahead() {
+                    let open = self.advance().pos;
+                    self.layout.inline_braces.insert(open);
+                    let fields = self.with_no_struct(false, |p| {
+                        let mut fields = Vec::new();
+                        while *p.peek() != Tok::RBrace {
+                            let (f, _) = p.ident("a field name")?;
+                            p.expect(Tok::Colon, "`:` after the field name")?;
+                            fields.push((f, p.expr()?));
+                            if !p.eat(&Tok::Comma) {
+                                break;
+                            }
+                        }
+                        Ok(fields)
+                    })?;
+                    let close = self.expect(Tok::RBrace, "`}` after the struct fields")?;
+                    self.layout.inline_braces.insert(close);
+                    ExprKind::StructLit(name, fields)
                 } else {
                     ExprKind::Var(name)
                 }
             }
-            other => {
-                return Err(Diag::new(
-                    pos,
-                    format!("expected an expression, found {}", describe(&other)),
-                    "an expression is a literal, a name, a call, `spawn Agent`, or `( ... )`",
-                ))
-            }
+            other => return Err(Diag::new(
+                pos,
+                format!("expected an expression, found {}", describe(&other)),
+                "an expression is a literal, a name, a call, `spawn Agent`, `[...]`, or `( ... )`",
+            )),
         };
         Ok(Expr { kind, pos })
     }

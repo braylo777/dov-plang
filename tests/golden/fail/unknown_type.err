@@ -2,4 +2,4 @@ tests/golden/fail/unknown_type.dov:1:6: error: unknown type `Widget`
   |
 1 | fn f(x: Widget) {}
   |      ^
-  = hint: types are `i64`, `bool`, `str`, `()` or an agent name
+  = hint: types are `i64`, `bool`, `str`, `()`, `[T]`, or a declared struct, enum or agent

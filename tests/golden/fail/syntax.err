@@ -2,4 +2,4 @@ tests/golden/fail/syntax.dov:2:13: error: expected an expression, found `;`
   |
 2 |     let x = ;
   |             ^
-  = hint: an expression is a literal, a name, a call, `spawn Agent`, or `( ... )`
+  = hint: an expression is a literal, a name, a call, `spawn Agent`, `[...]`, or `( ... )`

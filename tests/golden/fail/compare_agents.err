@@ -2,4 +2,4 @@ tests/golden/fail/compare_agents.dov:5:11: error: cannot compare values of type 
   |
 5 |     print(a == b);
   |           ^
-  = hint: `==` and `!=` work on i64, bool and str only
+  = hint: `==` and `!=` work on i64, bool and str only; use `match` for enums

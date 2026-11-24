@@ -20,6 +20,11 @@ pub enum Tok {
     Spawn,
     Send,
     Extern,
+    Struct,
+    Enum,
+    Match,
+    Import,
+    Defer,
     True,
     False,
     // punctuation
@@ -27,6 +32,11 @@ pub enum Tok {
     RParen,
     LBrace,
     RBrace,
+    LBracket,
+    RBracket,
+    ColonColon,
+    DotDot,
+    FatArrow,
     Comma,
     Semi,
     Colon,
@@ -83,12 +93,22 @@ pub fn spell(t: &Tok) -> String {
         Tok::Spawn => "spawn".into(),
         Tok::Send => "send".into(),
         Tok::Extern => "extern".into(),
+        Tok::Struct => "struct".into(),
+        Tok::Enum => "enum".into(),
+        Tok::Match => "match".into(),
+        Tok::Import => "import".into(),
+        Tok::Defer => "defer".into(),
         Tok::True => "true".into(),
         Tok::False => "false".into(),
         Tok::LParen => "(".into(),
         Tok::RParen => ")".into(),
         Tok::LBrace => "{".into(),
         Tok::RBrace => "}".into(),
+        Tok::LBracket => "[".into(),
+        Tok::RBracket => "]".into(),
+        Tok::ColonColon => "::".into(),
+        Tok::DotDot => "..".into(),
+        Tok::FatArrow => "=>".into(),
         Tok::Comma => ",".into(),
         Tok::Semi => ";".into(),
         Tok::Colon => ":".into(),
@@ -146,6 +166,11 @@ pub fn is_keyword(t: &Tok) -> bool {
             | Tok::Spawn
             | Tok::Send
             | Tok::Extern
+            | Tok::Struct
+            | Tok::Enum
+            | Tok::Match
+            | Tok::Import
+            | Tok::Defer
             | Tok::True
             | Tok::False
     )
@@ -165,6 +190,11 @@ fn keyword(s: &str) -> Option<Tok> {
         "spawn" => Tok::Spawn,
         "send" => Tok::Send,
         "extern" => Tok::Extern,
+        "struct" => Tok::Struct,
+        "enum" => Tok::Enum,
+        "match" => Tok::Match,
+        "import" => Tok::Import,
+        "defer" => Tok::Defer,
         "true" => Tok::True,
         "false" => Tok::False,
         _ => return None,
@@ -173,6 +203,18 @@ fn keyword(s: &str) -> Option<Tok> {
 
 pub fn lex(src: &str) -> Result<Vec<Token>> {
     Ok(lex_with_comments(src)?.0)
+}
+
+/// Lex file number `file` (positions carry the file id).
+pub fn lex_file(src: &str, file: u16) -> Result<Vec<Token>> {
+    let mut toks = lex(src).map_err(|mut d| {
+        d.pos.file = file;
+        d
+    })?;
+    for t in &mut toks {
+        t.pos.file = file;
+    }
+    Ok(toks)
 }
 
 /// Lex and also keep the line comments (for the formatter).
@@ -198,7 +240,7 @@ pub fn lex_with_comments(src: &str) -> Result<(Vec<Token>, Vec<Comment>)> {
 
     while i < chars.len() {
         let c = chars[i];
-        let pos = Pos { line, col };
+        let pos = Pos { file: 0, line, col };
         let start = i;
         if c.is_whitespace() {
             bump!();
@@ -282,7 +324,11 @@ pub fn lex_with_comments(src: &str) -> Result<(Vec<Token>, Vec<Comment>)> {
                             '0' => '\0',
                             other => {
                                 return Err(Diag::new(
-                                    Pos { line, col: col - 1 },
+                                    Pos {
+                                        file: 0,
+                                        line,
+                                        col: col - 1,
+                                    },
                                     format!("unknown escape `\\{other}`"),
                                     "valid escapes are \\n \\t \\\\ \\\" and \\0",
                                 ))
@@ -302,6 +348,11 @@ pub fn lex_with_comments(src: &str) -> Result<(Vec<Token>, Vec<Comment>)> {
         let next = chars.get(i + 1).copied();
         let (tok, len) = match (c, next) {
             ('-', Some('>')) => (Tok::Arrow, 2),
+            ('=', Some('>')) => (Tok::FatArrow, 2),
+            (':', Some(':')) => (Tok::ColonColon, 2),
+            ('.', Some('.')) => (Tok::DotDot, 2),
+            ('[', _) => (Tok::LBracket, 1),
+            (']', _) => (Tok::RBracket, 1),
             ('=', Some('=')) => (Tok::Eq, 2),
             ('!', Some('=')) => (Tok::Ne, 2),
             ('<', Some('=')) => (Tok::Le, 2),
@@ -347,7 +398,7 @@ pub fn lex_with_comments(src: &str) -> Result<(Vec<Token>, Vec<Comment>)> {
     }
     out.push(Token {
         tok: Tok::Eof,
-        pos: Pos { line, col },
+        pos: Pos { file: 0, line, col },
         len: 0,
     });
     Ok((out, comments))
@@ -410,7 +461,14 @@ mod tests {
     #[test]
     fn positions() {
         let t = lex("a\n  b").unwrap();
-        assert_eq!(t[1].pos, Pos { line: 2, col: 3 });
+        assert_eq!(
+            t[1].pos,
+            Pos {
+                file: 0,
+                line: 2,
+                col: 3
+            }
+        );
     }
 
     #[test]

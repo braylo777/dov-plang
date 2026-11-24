@@ -72,7 +72,11 @@ fn sanitizers() -> bool {
             .status()
             .map(|s| s.success())
             .unwrap_or(false);
-        let ok = built && Command::new(&exe).status().map(|s| s.success()).unwrap_or(false);
+        let ok = built
+            && Command::new(&exe)
+                .status()
+                .map(|s| s.success())
+                .unwrap_or(false);
         if !ok {
             assert!(
                 std::env::var_os("DOV_REQUIRE_SAN").is_none(),
@@ -158,11 +162,21 @@ fn fail_case(name: &str) {
         .output()
         .unwrap();
     let stderr = String::from_utf8_lossy(&o.stderr).to_string();
-    assert_eq!(o.status.code(), Some(1), "{name} should be rejected: {stderr}");
+    assert_eq!(
+        o.status.code(),
+        Some(1),
+        "{name} should be rejected: {stderr}"
+    );
     // Shape every diagnostic must have: position, source line, caret, hint.
     let first = stderr.lines().next().unwrap_or("");
-    assert!(first.starts_with(&format!("{rel}:")) && first.contains(": error: "), "{stderr}");
-    assert!(stderr.lines().any(|l| l.trim_end().ends_with('^')), "no caret: {stderr}");
+    assert!(
+        first.starts_with(&format!("{rel}:")) && first.contains(": error: "),
+        "{stderr}"
+    );
+    assert!(
+        stderr.lines().any(|l| l.trim_end().ends_with('^')),
+        "no caret: {stderr}"
+    );
     assert!(stderr.contains(" = hint: "), "no hint: {stderr}");
     expect_file(&golden("fail", name, "err"), &stderr);
 }
@@ -171,7 +185,11 @@ fn fmt_case(name: &str) {
     let src = read(&golden("fmt", name, "dov"));
     let out = dovc::fmt::format(&src).unwrap_or_else(|d| panic!("{}", d.render(name, &src)));
     expect_file(&golden("fmt", name, "fmt"), &out);
-    assert_eq!(dovc::fmt::format(&out).unwrap(), out, "fmt is not idempotent on {name}");
+    assert_eq!(
+        dovc::fmt::format(&out).unwrap(),
+        out,
+        "fmt is not idempotent on {name}"
+    );
 }
 
 include!(concat!(env!("OUT_DIR"), "/golden_cases.rs"));

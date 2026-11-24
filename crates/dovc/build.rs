@@ -27,10 +27,7 @@ fn main() {
                 .chars()
                 .map(|c| if c.is_ascii_alphanumeric() { c } else { '_' })
                 .collect();
-            let _ = writeln!(
-                out,
-                "#[test] fn {kind}_{ident}() {{ {kind}_case({n:?}); }}"
-            );
+            let _ = writeln!(out, "#[test] fn {kind}_{ident}() {{ {kind}_case({n:?}); }}");
         }
     }
     let dest = Path::new(&std::env::var("OUT_DIR").unwrap()).join("golden_cases.rs");

@@ -178,7 +178,11 @@ fn fmt_cli_check_and_rewrite() {
 fn examples_are_formatted() {
     for ex in ["hello", "agent_counter", "ffi"] {
         let o = dovc(&["fmt", "--check", &format!("examples/{ex}.dov")]);
-        assert!(o.status.success(), "{ex}: {}", String::from_utf8_lossy(&o.stderr));
+        assert!(
+            o.status.success(),
+            "{ex}: {}",
+            String::from_utf8_lossy(&o.stderr)
+        );
     }
 }
 
@@ -188,8 +192,14 @@ fn build_errors_render_full_diagnostics() {
     let o = dovc(&["run", &f]);
     assert_eq!(o.status.code(), Some(1));
     let e = String::from_utf8_lossy(&o.stderr);
-    assert!(e.contains(":3:5: error: cannot assign to immutable binding `x`"), "{e}");
-    assert!(e.contains("3 |     x = 2;\n  |     ^\n  = hint: declare it with `var x`"), "{e}");
+    assert!(
+        e.contains(":3:5: error: cannot assign to immutable binding `x`"),
+        "{e}"
+    );
+    assert!(
+        e.contains("3 |     x = 2;\n  |     ^\n  = hint: declare it with `var x`"),
+        "{e}"
+    );
 }
 
 #[test]

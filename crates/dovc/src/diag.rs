@@ -12,8 +12,26 @@
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub struct Pos {
+    /// Index into `Sources` (0 = the built-in prelude).
+    pub file: u16,
     pub line: u32,
     pub col: u32,
+}
+
+/// All source files of one program, indexed by `Pos::file`.
+#[derive(Debug, Clone, Default)]
+pub struct Sources {
+    /// (display name, text)
+    pub files: Vec<(String, String)>,
+}
+
+impl Sources {
+    pub fn render(&self, d: &Diag) -> String {
+        match self.files.get(d.pos.file as usize) {
+            Some((name, src)) => d.render(name, src),
+            None => d.render("<unknown>", ""),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -71,7 +89,7 @@ pub fn closest<'a>(name: &str, candidates: impl IntoIterator<Item = &'a str>) ->
     for c in candidates {
         let d = distance(name, c);
         let limit = if name.chars().count() <= 3 { 1 } else { 2 };
-        if d <= limit && best.map_or(true, |(bd, bc)| d < bd || (d == bd && c < bc)) {
+        if d <= limit && best.is_none_or(|(bd, bc)| d < bd || (d == bd && c < bc)) {
             best = Some((d, c));
         }
     }
@@ -99,7 +117,15 @@ mod tests {
 
     #[test]
     fn render_has_line_caret_and_hint() {
-        let d = Diag::new(Pos { line: 2, col: 5 }, "boom", "try this");
+        let d = Diag::new(
+            Pos {
+                file: 0,
+                line: 2,
+                col: 5,
+            },
+            "boom",
+            "try this",
+        );
         let r = d.render("f.dov", "fn main() {\n    x = 2;\n}\n");
         assert_eq!(
             r,
@@ -109,9 +135,25 @@ mod tests {
 
     #[test]
     fn render_keeps_tabs_and_survives_eof_line() {
-        let d = Diag::new(Pos { line: 1, col: 3 }, "m", "h");
+        let d = Diag::new(
+            Pos {
+                file: 0,
+                line: 1,
+                col: 3,
+            },
+            "m",
+            "h",
+        );
         assert!(d.render("f", "\tab").contains("\n  | \t ^"));
-        let d = Diag::new(Pos { line: 9, col: 1 }, "m", "h");
+        let d = Diag::new(
+            Pos {
+                file: 0,
+                line: 9,
+                col: 1,
+            },
+            "m",
+            "h",
+        );
         assert!(d.render("f", "x").contains("9 | \n  | ^"));
     }
 

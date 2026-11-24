@@ -83,11 +83,11 @@ fn main() {
     let src = read(file);
     match cmd {
         "check" => {
-            dovc::check_source(&src).unwrap_or_else(|d| fail(d.render(file, &src)));
+            dovc::check_file(&src, file).unwrap_or_else(|e| fail(e));
             println!("ok: {file}");
         }
         "emit-c" => {
-            let c = dovc::compile_to_c(&src).unwrap_or_else(|d| fail(d.render(file, &src)));
+            let c = dovc::compile_file(&src, file).unwrap_or_else(|e| fail(e));
             print!("{c}");
         }
         "build" => {

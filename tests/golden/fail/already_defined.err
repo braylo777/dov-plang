@@ -2,4 +2,4 @@ tests/golden/fail/already_defined.dov:2:1: error: `tick` is already defined at 1
   |
 2 | agent tick {}
   | ^
-  = hint: functions, externs and agents share one namespace; rename one of them
+  = hint: functions, externs, agents, structs and enums share one namespace; rename one of them

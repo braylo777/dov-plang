@@ -54,7 +54,11 @@ pub fn format(src: &str) -> Result<String> {
     };
     if !same {
         return Err(Diag::new(
-            Pos { line: 1, col: 1 },
+            Pos {
+                file: 0,
+                line: 1,
+                col: 1,
+            },
             "internal error: formatting would change this program",
             "please report this file as a dovc bug; the file was not changed",
         ));

@@ -2,4 +2,4 @@ tests/golden/fail/parse_param_missing_type.dov:1:11: error: expected `:` after p
   |
 1 | fn twice(n) -> i64 {
   |           ^
-  = hint: give the parameter a type, e.g. `n: i64`
+  = hint: give it a type, e.g. `n: i64`
