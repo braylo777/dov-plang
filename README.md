@@ -27,6 +27,9 @@ fn main() {
 }
 ```
 
+**Try it in the browser:** [dov-playground.pages.dev](https://dov-playground.pages.dev/) — the real
+`dovc` front end and C generator compiled to WebAssembly (6 presets; shows diagnostics and the generated C).
+
 ## Quick start
 
 Needs Rust (stable) and a C compiler (`cc`/clang/gcc). No npm, no LLVM install, zero crate dependencies.
@@ -81,11 +84,11 @@ Generated from [`results/metrics.json`](results/metrics.json) by `scripts/readme
 `python3 scripts/readme_numbers.py --write`.
 
 <!-- numbers:start -->
-![tests](https://img.shields.io/badge/tests-382%20passing-brightgreen) ![examples](https://img.shields.io/badge/examples-12-blue) ![deps](https://img.shields.io/badge/dependencies-0-blue) ![version](https://img.shields.io/badge/version-0.3.0-informational)
+![tests](https://img.shields.io/badge/tests-383%20passing-brightgreen) ![examples](https://img.shields.io/badge/examples-12-blue) ![deps](https://img.shields.io/badge/dependencies-0-blue) ![version](https://img.shields.io/badge/version-0.3.0-informational)
 
 | Metric | Value |
 |---|---|
-| Tests passing (`cargo test`) | 382 |
+| Tests passing (`cargo test`) | 383 |
 | Golden cases (run / fail / fmt) | 138 / 150 / 25 |
 | Examples (`make examples`) | 12 |
 | Crate dependencies | 0 |
@@ -96,7 +99,7 @@ Generated from [`results/metrics.json`](results/metrics.json) by `scripts/readme
 | Kernel `collatz`: .dov / hand C | 117.5 ms / 82.4 ms (1.43x) |
 | Kernel `slices`: .dov / hand C | 18.5 ms / 7.5 ms (2.46x) |
 
-Measured 2026-11-24T20:41:00Z at `3e37118` on Darwin arm64 Apple M2 Pro with Apple clang version 21.0.0 (clang-2100.1.1.101). Source: [`results/metrics.json`](results/metrics.json).
+Measured 2026-11-24T20:45:46Z at `94535e2` on Darwin arm64 Apple M2 Pro with Apple clang version 21.0.0 (clang-2100.1.1.101). Source: [`results/metrics.json`](results/metrics.json).
 <!-- numbers:end -->
 
 ## Error messages
@@ -130,6 +133,7 @@ CI runs everything on macOS and Ubuntu, plus coverage (≥ 90% lines).
 
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) ([PDF](docs/ARCHITECTURE.pdf)): why .dov, grammar,
   types, values, agents, a worked C lowering, the pipeline, diagnostics, limits.
+- [playground/](playground/): the static playground (`python3 scripts/build_playground.py`, no npm).
 - [docs/SPEC.md](docs/SPEC.md): the v0.3 language specification (grammar + semantics).
 - [docs/DESIGN.md](docs/DESIGN.md), [docs/MASTERPLAN.md](docs/MASTERPLAN.md), [CHANGELOG.md](CHANGELOG.md).
 

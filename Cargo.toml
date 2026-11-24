@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["crates/dovc"]
+members = ["crates/dovc", "crates/dovc-wasm"]
 
 [workspace.package]
 version = "0.3.0"

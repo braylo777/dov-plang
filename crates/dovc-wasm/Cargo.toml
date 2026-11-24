@@ -1,0 +1,15 @@
+[package]
+name = "dovc-wasm"
+description = "The dovc front end and C generator compiled to WebAssembly for the .dov playground."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+dovc = { path = "../dovc" }

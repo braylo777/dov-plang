@@ -1,0 +1,17 @@
+// Agents own their state; other code only sends messages.
+agent Counter {
+    var total: i64 = 0;
+    on add(n: i64) {
+        total = total + n;
+    }
+    on report() {
+        print("total = ", total);
+    }
+}
+
+fn main() {
+    let c = spawn Counter;
+    send c.add(5);
+    send c.add(37);
+    send c.report();
+}

@@ -1,0 +1,17 @@
+// defer runs at block exit and before return, latest first.
+fn work(fail: bool) -> bool {
+    print("open");
+    defer print("close");
+    if fail {
+        print("failed");
+        return false;
+    }
+    print("done");
+    return true;
+}
+
+fn main() {
+    let a = work(false);
+    let b = work(true);
+    print(a, " ", b);
+}

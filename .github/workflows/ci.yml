@@ -59,6 +59,12 @@ jobs:
       - name: Agent examples under ThreadSanitizer
         run: make tsan
 
+      - name: Playground compiler builds for WebAssembly
+        if: runner.os == 'Linux'
+        run: |
+          rustup target add wasm32-unknown-unknown
+          cargo build -p dovc-wasm --release --locked --target wasm32-unknown-unknown
+
       - name: README numbers equal results/metrics.json
         run: python3 scripts/readme_numbers.py --check
 

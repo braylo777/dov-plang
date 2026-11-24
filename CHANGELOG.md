@@ -28,6 +28,8 @@ may break programs (each break is listed here).
   feature. Tests: 192 → see the README table (generated from `results/metrics.json`).
 - `bench/run.py` (compile time per 1,000 lines; 4 kernels vs hand-written C), `scripts/metrics.py`,
   `scripts/readme_numbers.py --check` (run in CI), `docs/ARCHITECTURE.md` + PDF + 5 SVG diagrams.
+- Playground: `crates/dovc-wasm` (dependency-free WebAssembly exports, no wasm-bindgen) and a
+  static page in `playground/`, deployed at https://dov-playground.pages.dev/.
 - CI: rustfmt, clippy `-D warnings`, coverage ≥ 90% lines (cargo-llvm-cov), TSan, README check.
 
 ### Changed (breaking)

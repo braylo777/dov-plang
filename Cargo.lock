@@ -5,3 +5,10 @@ version = 4
 [[package]]
 name = "dovc"
 version = "0.3.0"
+
+[[package]]
+name = "dovc-wasm"
+version = "0.3.0"
+dependencies = [
+ "dovc",
+]

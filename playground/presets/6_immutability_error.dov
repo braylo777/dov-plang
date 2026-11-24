@@ -1,0 +1,11 @@
+// Immutable by default: this program does not compile. Change `let` to `var`.
+struct Account {
+    owner: str,
+    balance: i64
+}
+
+fn main() {
+    let acct = Account { owner: "ada", balance: 10 };
+    acct.balance = acct.balance + 5;
+    print(acct.owner, " ", acct.balance);
+}

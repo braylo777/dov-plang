@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>.dov Playground</title>
+<meta name="description" content="Compile .dov pLang to C11 in your browser: the real dovc compiler, built to WebAssembly.">
+<style>
+:root { --bg:#f7f9fb; --panel:#ffffff; --ink:#1f2933; --muted:#52606d; --line:#d9e2ec; --accent:#2f6fb3; --bad:#b42318; --good:#2f8a4b; --code:#f1f4f8; }
+@media (prefers-color-scheme: dark) { :root { --bg:#11161c; --panel:#18202a; --ink:#e4e7eb; --muted:#9aa5b1; --line:#2a3644; --accent:#6aa7e8; --bad:#f97066; --good:#5fc27e; --code:#101820; } }
+* { box-sizing: border-box; }
+body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.45 -apple-system, Helvetica, Arial, sans-serif; }
+header { padding:14px 16px; border-bottom:1px solid var(--line); display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+header h1 { font-size:18px; margin:0 12px 0 0; }
+header .sub { color:var(--muted); font-size:13px; }
+nav { display:flex; flex-wrap:wrap; gap:6px; padding:10px 16px; }
+nav button, .actions button { border:1px solid var(--line); background:var(--panel); color:var(--ink); padding:6px 10px; border-radius:6px; cursor:pointer; font-size:13px; }
+nav button.on { border-color:var(--accent); color:var(--accent); font-weight:600; }
+main { display:grid; grid-template-columns: 1fr 1fr; gap:12px; padding:0 16px 16px; }
+@media (max-width: 860px) { main { grid-template-columns: 1fr; } }
+section { background:var(--panel); border:1px solid var(--line); border-radius:8px; display:flex; flex-direction:column; min-width:0; }
+section h2 { font-size:13px; margin:0; padding:8px 12px; border-bottom:1px solid var(--line); color:var(--muted); display:flex; justify-content:space-between; align-items:center; gap:8px; }
+textarea, pre { margin:0; padding:12px; font:12.5px/1.5 Menlo, Consolas, monospace; background:var(--code); color:var(--ink); border:0; width:100%; overflow:auto; white-space:pre; tab-size:4; }
+textarea { min-height:420px; resize:vertical; outline:none; }
+pre { min-height:120px; max-height:560px; }
+#status.ok { color:var(--good); } #status.bad { color:var(--bad); }
+#diag { color:var(--bad); }
+.actions { display:flex; gap:6px; }
+footer { padding:0 16px 24px; color:var(--muted); font-size:13px; }
+a { color:var(--accent); }
+</style>
+</head>
+<body>
+<header>
+  <h1>.dov Playground</h1>
+  <span class="sub">The real <code>dovc</code> 0.3 front end and C11 generator, compiled to WebAssembly. Nothing leaves your browser.</span>
+</header>
+<nav id="presets"></nav>
+<main>
+  <section>
+    <h2><span>program.dov</span><span class="actions"><button id="fmt" type="button">Format</button><button id="go" type="button">Compile</button></span></h2>
+    <textarea id="src" spellcheck="false" aria-label=".dov source"></textarea>
+  </section>
+  <section>
+    <h2><span>Diagnostics</span><span id="status"></span></h2>
+    <pre id="diag"></pre>
+    <h2><span>Output of a native build (preset as shipped)</span></h2>
+    <pre id="out"></pre>
+    <h2><span>Generated C11 (<code>dovc emit-c</code>)</span></h2>
+    <pre id="c"></pre>
+  </section>
+</main>
+<footer>Source, spec and docs: <a href="https://github.com/braylo777/dov-plang">github.com/braylo777/dov-plang</a>. Imports are not available here (no file system).</footer>
+<script src="presets.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

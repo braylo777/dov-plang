@@ -1,6 +1,6 @@
 {
   "version": "0.3.0",
-  "tests": 382,
+  "tests": 383,
   "tests_failed": 0,
   "examples": 12,
   "golden_run": 138,
@@ -44,7 +44,7 @@
     "cc": "Apple clang version 21.0.0 (clang-2100.1.1.101)",
     "machine": "Darwin arm64 Apple M2 Pro"
   },
-  "generated_at": "2026-11-24T20:41:00Z",
-  "git_sha": "3e37118",
+  "generated_at": "2026-11-24T20:45:46Z",
+  "git_sha": "94535e2",
   "machine": "Darwin arm64 Apple M2 Pro"
 }

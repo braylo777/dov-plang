@@ -1,0 +1,26 @@
+// Generics are inferred and monomorphized; Option and Result replace null.
+fn find<T>(xs: [T], i: i64) -> Option<T> {
+    if i < 0 || i >= len(xs) {
+        return None;
+    }
+    return Some(xs[i]);
+}
+
+fn parse_digit(c: i64) -> Result<i64, str> {
+    if c >= 48 && c <= 57 {
+        return Ok(c - 48);
+    }
+    return Err(concat("not a digit: ", char_of(c)));
+}
+
+fn main() {
+    print(unwrap_or(find([10, 20, 30], 1), -1), " ", unwrap_or(find(["a"], 5), "none"));
+    match parse_digit("x"[0]) {
+        Ok(d) => {
+            print("digit ", d);
+        }
+        Err(e) => {
+            print(e);
+        }
+    }
+}
