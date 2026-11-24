@@ -1,0 +1,631 @@
+// A JSON parser and printer in .dov (RFC 8259 subset: numbers keep their source text).
+// It shows enums with payloads, recursive data through slices, generics (Option/Result),
+// string building, bounds-checked indexing and `match`.
+
+enum Json {
+    Null,
+    Bool(bool),
+    Num(str),
+    Text(str),
+    Arr([Json]),
+    Obj([Member]),
+}
+
+struct Member {
+    key: str,
+    value: Json,
+}
+
+struct JsonError {
+    msg: str,
+    pos: i64,
+}
+
+// A parsed value and the position just after it.
+struct Parsed {
+    value: Json,
+    pos: i64,
+}
+
+// A parsed string and the position just after its closing quote.
+struct ParsedText {
+    text: str,
+    pos: i64,
+}
+
+// ---------- characters ----------
+
+fn ch(s: str) -> i64 {
+    return s[0];
+}
+
+fn is_space(c: i64) -> bool {
+    return c == 32 || c == 9 || c == 10 || c == 13;
+}
+
+fn is_digit(c: i64) -> bool {
+    return c >= 48 && c <= 57;
+}
+
+fn hex_value(c: i64) -> i64 {
+    if is_digit(c) {
+        return c - 48;
+    }
+    if c >= 97 && c <= 102 {
+        return c - 87;
+    }
+    if c >= 65 && c <= 70 {
+        return c - 55;
+    }
+    return -1;
+}
+
+fn hex_digit(n: i64) -> str {
+    return "0123456789abcdef"[n..n + 1];
+}
+
+fn skip_space(s: str, pos: i64) -> i64 {
+    var p = pos;
+    while p < len(s) && is_space(s[p]) {
+        p = p + 1;
+    }
+    return p;
+}
+
+fn fail(msg: str, pos: i64) -> Result<Parsed, JsonError> {
+    return Err(JsonError { msg: msg, pos: pos });
+}
+
+fn starts_with_at(s: str, pos: i64, word: str) -> bool {
+    if pos + len(word) > len(s) {
+        return false;
+    }
+    return s[pos..pos + len(word)] == word;
+}
+
+// ---------- UTF-8 ----------
+
+// Encode a Unicode code point as UTF-8 bytes.
+fn utf8(cp: i64) -> str {
+    if cp < 128 {
+        return char_of(cp);
+    }
+    if cp < 2048 {
+        return concat(char_of(192 + cp / 64), char_of(128 + cp % 64));
+    }
+    if cp < 65536 {
+        let a = char_of(224 + cp / 4096);
+        let b = char_of(128 + cp / 64 % 64);
+        return concat(concat(a, b), char_of(128 + cp % 64));
+    }
+    let a = char_of(240 + cp / 262144);
+    let b = char_of(128 + cp / 4096 % 64);
+    let c = char_of(128 + cp / 64 % 64);
+    return concat(concat(a, b), concat(c, char_of(128 + cp % 64)));
+}
+
+// Four hex digits at `pos`, or -1.
+fn hex4(s: str, pos: i64) -> i64 {
+    if pos + 4 > len(s) {
+        return -1;
+    }
+    var v = 0;
+    var i = 0;
+    while i < 4 {
+        let h = hex_value(s[pos + i]);
+        if h < 0 {
+            return -1;
+        }
+        v = v * 16 + h;
+        i = i + 1;
+    }
+    return v;
+}
+
+// ---------- parser ----------
+
+fn parse_string(s: str, start: i64) -> Result<ParsedText, JsonError> {
+    // s[start] is the opening quote.
+    var out = "";
+    var p = start + 1;
+    var run = p;
+    while p < len(s) {
+        let c = s[p];
+        if c == 34 {
+            out = concat(out, s[run..p]);
+            return Ok(ParsedText { text: out, pos: p + 1 });
+        }
+        if c < 32 {
+            return Err(JsonError { msg: "control character in string", pos: p });
+        }
+        if c == 92 {
+            out = concat(out, s[run..p]);
+            if p + 1 >= len(s) {
+                return Err(JsonError { msg: "unfinished escape", pos: p });
+            }
+            let e = s[p + 1];
+            p = p + 2;
+            match e {
+                34 => {
+                    out = concat(out, "\"");
+                }
+                92 => {
+                    out = concat(out, "\\");
+                }
+                47 => {
+                    out = concat(out, "/");
+                }
+                98 => {
+                    out = concat(out, char_of(8));
+                }
+                102 => {
+                    out = concat(out, char_of(12));
+                }
+                110 => {
+                    out = concat(out, "\n");
+                }
+                114 => {
+                    out = concat(out, char_of(13));
+                }
+                116 => {
+                    out = concat(out, "\t");
+                }
+                117 => {
+                    var cp = hex4(s, p);
+                    if cp < 0 {
+                        return Err(JsonError { msg: "bad \\u escape", pos: p });
+                    }
+                    p = p + 4;
+                    // A surrogate pair encodes one code point above U+FFFF.
+                    if cp >= 55296 && cp <= 56319 && starts_with_at(s, p, "\\u") {
+                        let lo = hex4(s, p + 2);
+                        if lo >= 56320 && lo <= 57343 {
+                            cp = 65536 + (cp - 55296) * 1024 + (lo - 56320);
+                            p = p + 6;
+                        }
+                    }
+                    out = concat(out, utf8(cp));
+                }
+                _ => {
+                    return Err(JsonError { msg: "unknown escape", pos: p - 1 });
+                }
+            }
+            run = p;
+        } else {
+            p = p + 1;
+        }
+    }
+    return Err(JsonError { msg: "unterminated string", pos: start });
+}
+
+// Numbers are checked against the JSON grammar and kept as text.
+fn parse_number(s: str, start: i64) -> Result<Parsed, JsonError> {
+    var p = start;
+    if p < len(s) && s[p] == ch("-") {
+        p = p + 1;
+    }
+    if p >= len(s) || !is_digit(s[p]) {
+        return fail("expected a digit", p);
+    }
+    if s[p] == ch("0") {
+        p = p + 1;
+    } else {
+        while p < len(s) && is_digit(s[p]) {
+            p = p + 1;
+        }
+    }
+    if p < len(s) && s[p] == ch(".") {
+        p = p + 1;
+        if p >= len(s) || !is_digit(s[p]) {
+            return fail("expected a digit after `.`", p);
+        }
+        while p < len(s) && is_digit(s[p]) {
+            p = p + 1;
+        }
+    }
+    if p < len(s) && (s[p] == ch("e") || s[p] == ch("E")) {
+        p = p + 1;
+        if p < len(s) && (s[p] == ch("+") || s[p] == ch("-")) {
+            p = p + 1;
+        }
+        if p >= len(s) || !is_digit(s[p]) {
+            return fail("expected a digit in the exponent", p);
+        }
+        while p < len(s) && is_digit(s[p]) {
+            p = p + 1;
+        }
+    }
+    return Ok(Parsed { value: Json::Num(s[start..p]), pos: p });
+}
+
+fn parse_array(s: str, start: i64, depth: i64) -> Result<Parsed, JsonError> {
+    var items: [Json] = [];
+    var p = skip_space(s, start + 1);
+    if p < len(s) && s[p] == ch("]") {
+        return Ok(Parsed { value: Json::Arr(items), pos: p + 1 });
+    }
+    while true {
+        match parse_value(s, p, depth + 1) {
+            Ok(r) => {
+                items = append(items, r.value);
+                p = skip_space(s, r.pos);
+            }
+            Err(e) => {
+                return Err(e);
+            }
+        }
+        if p >= len(s) {
+            return fail("unterminated array", start);
+        }
+        if s[p] == ch("]") {
+            return Ok(Parsed { value: Json::Arr(items), pos: p + 1 });
+        }
+        if s[p] != ch(",") {
+            return fail("expected `,` or `]`", p);
+        }
+        p = p + 1;
+    }
+    return fail("unreachable", p);
+}
+
+fn parse_object(s: str, start: i64, depth: i64) -> Result<Parsed, JsonError> {
+    var members: [Member] = [];
+    var p = skip_space(s, start + 1);
+    if p < len(s) && s[p] == ch("}") {
+        return Ok(Parsed { value: Json::Obj(members), pos: p + 1 });
+    }
+    while true {
+        if p >= len(s) || s[p] != ch("\"") {
+            return fail("expected a string key", p);
+        }
+        var key = "";
+        match parse_string(s, p) {
+            Ok(k) => {
+                key = k.text;
+                p = skip_space(s, k.pos);
+            }
+            Err(e) => {
+                return Err(e);
+            }
+        }
+        if p >= len(s) || s[p] != ch(":") {
+            return fail("expected `:` after the key", p);
+        }
+        match parse_value(s, p + 1, depth + 1) {
+            Ok(r) => {
+                members = append(members, Member { key: key, value: r.value });
+                p = skip_space(s, r.pos);
+            }
+            Err(e) => {
+                return Err(e);
+            }
+        }
+        if p >= len(s) {
+            return fail("unterminated object", start);
+        }
+        if s[p] == ch("}") {
+            return Ok(Parsed { value: Json::Obj(members), pos: p + 1 });
+        }
+        if s[p] != ch(",") {
+            return fail("expected `,` or `}`", p);
+        }
+        p = skip_space(s, p + 1);
+    }
+    return fail("unreachable", p);
+}
+
+fn parse_value(s: str, start: i64, depth: i64) -> Result<Parsed, JsonError> {
+    if depth > 100 {
+        return fail("nesting is too deep", start);
+    }
+    let p = skip_space(s, start);
+    if p >= len(s) {
+        return fail("expected a value", p);
+    }
+    let c = s[p];
+    if c == ch("{") {
+        return parse_object(s, p, depth);
+    }
+    if c == ch("[") {
+        return parse_array(s, p, depth);
+    }
+    if c == ch("\"") {
+        match parse_string(s, p) {
+            Ok(t) => {
+                return Ok(Parsed { value: Json::Text(t.text), pos: t.pos });
+            }
+            Err(e) => {
+                return Err(e);
+            }
+        }
+    }
+    if c == ch("-") || is_digit(c) {
+        return parse_number(s, p);
+    }
+    if starts_with_at(s, p, "true") {
+        return Ok(Parsed { value: Json::Bool(true), pos: p + 4 });
+    }
+    if starts_with_at(s, p, "false") {
+        return Ok(Parsed { value: Json::Bool(false), pos: p + 5 });
+    }
+    if starts_with_at(s, p, "null") {
+        return Ok(Parsed { value: Json::Null, pos: p + 4 });
+    }
+    return fail(concat("unexpected character ", quote(s[p..p + 1])), p);
+}
+
+// Parse a whole document: one value, then only whitespace.
+fn parse(s: str) -> Result<Json, JsonError> {
+    match parse_value(s, 0, 0) {
+        Ok(r) => {
+            let end = skip_space(s, r.pos);
+            if end != len(s) {
+                return Err(JsonError { msg: "trailing characters", pos: end });
+            }
+            return Ok(r.value);
+        }
+        Err(e) => {
+            return Err(e);
+        }
+    }
+}
+
+// ---------- printer ----------
+
+fn quote(s: str) -> str {
+    var out = "\"";
+    var run = 0;
+    var i = 0;
+    while i < len(s) {
+        let c = s[i];
+        var esc = "";
+        if c == 34 {
+            esc = "\\\"";
+        } else if c == 92 {
+            esc = "\\\\";
+        } else if c == 10 {
+            esc = "\\n";
+        } else if c == 9 {
+            esc = "\\t";
+        } else if c == 13 {
+            esc = "\\r";
+        } else if c < 32 {
+            esc = concat(concat("\\u00", hex_digit(c / 16)), hex_digit(c % 16));
+        }
+        if len(esc) > 0 {
+            out = concat(concat(out, s[run..i]), esc);
+            run = i + 1;
+        }
+        i = i + 1;
+    }
+    return concat(concat(out, s[run..len(s)]), "\"");
+}
+
+fn indent(n: i64) -> str {
+    var out = "";
+    var i = 0;
+    while i < n {
+        out = concat(out, "  ");
+        i = i + 1;
+    }
+    return out;
+}
+
+// `level < 0` prints on one line; otherwise pretty-prints at that indent level.
+fn show(j: Json, level: i64) -> str {
+    let pretty = level >= 0;
+    var nl = "";
+    var pad = "";
+    var close_pad = "";
+    var colon = ":";
+    if pretty {
+        nl = "\n";
+        pad = indent(level + 1);
+        close_pad = indent(level);
+        colon = ": ";
+    }
+    var next = -1;
+    if pretty {
+        next = level + 1;
+    }
+    match j {
+        Json::Null => {
+            return "null";
+        }
+        Json::Bool(b) => {
+            return to_str(b);
+        }
+        Json::Num(n) => {
+            return n;
+        }
+        Json::Text(t) => {
+            return quote(t);
+        }
+        Json::Arr(items) => {
+            if len(items) == 0 {
+                return "[]";
+            }
+            var out = concat("[", nl);
+            var i = 0;
+            while i < len(items) {
+                if i > 0 {
+                    out = concat(concat(out, ","), nl);
+                }
+                out = concat(concat(out, pad), show(items[i], next));
+                i = i + 1;
+            }
+            return concat(concat(concat(out, nl), close_pad), "]");
+        }
+        Json::Obj(members) => {
+            if len(members) == 0 {
+                return "{}";
+            }
+            var out = concat("{", nl);
+            var i = 0;
+            while i < len(members) {
+                if i > 0 {
+                    out = concat(concat(out, ","), nl);
+                }
+                let m = members[i];
+                let head = concat(concat(pad, quote(m.key)), colon);
+                out = concat(concat(out, head), show(m.value, next));
+                i = i + 1;
+            }
+            return concat(concat(concat(out, nl), close_pad), "}");
+        }
+    }
+}
+
+// ---------- queries ----------
+
+fn get(j: Json, key: str) -> Option<Json> {
+    match j {
+        Json::Obj(members) => {
+            var i = 0;
+            while i < len(members) {
+                if members[i].key == key {
+                    return Some(members[i].value);
+                }
+                i = i + 1;
+            }
+            return None;
+        }
+        _ => {
+            return None;
+        }
+    }
+}
+
+fn at(j: Json, index: i64) -> Option<Json> {
+    match j {
+        Json::Arr(items) => {
+            if index >= 0 && index < len(items) {
+                return Some(items[index]);
+            }
+            return None;
+        }
+        _ => {
+            return None;
+        }
+    }
+}
+
+// Follow a path like ["users", "1", "name"]; numeric steps index arrays.
+fn path(j: Json, steps: [str]) -> Option<Json> {
+    var cur = j;
+    var i = 0;
+    while i < len(steps) {
+        let step = steps[i];
+        var next: Option<Json> = get(cur, step);
+        if is_digit(step[0]) {
+            var n = 0;
+            var k = 0;
+            while k < len(step) {
+                n = n * 10 + step[k] - 48;
+                k = k + 1;
+            }
+            next = at(cur, n);
+        }
+        match next {
+            Some(v) => {
+                cur = v;
+            }
+            None => {
+                return None;
+            }
+        }
+        i = i + 1;
+    }
+    return Some(cur);
+}
+
+fn count_nodes(j: Json) -> i64 {
+    var n = 1;
+    match j {
+        Json::Arr(items) => {
+            var i = 0;
+            while i < len(items) {
+                n = n + count_nodes(items[i]);
+                i = i + 1;
+            }
+        }
+        Json::Obj(members) => {
+            var i = 0;
+            while i < len(members) {
+                n = n + count_nodes(members[i].value);
+                i = i + 1;
+            }
+        }
+        _ => {}
+    }
+    return n;
+}
+
+fn depth(j: Json) -> i64 {
+    var best = 0;
+    match j {
+        Json::Arr(items) => {
+            var i = 0;
+            while i < len(items) {
+                let d = depth(items[i]);
+                if d > best {
+                    best = d;
+                }
+                i = i + 1;
+            }
+            return best + 1;
+        }
+        Json::Obj(members) => {
+            var i = 0;
+            while i < len(members) {
+                let d = depth(members[i].value);
+                if d > best {
+                    best = d;
+                }
+                i = i + 1;
+            }
+            return best + 1;
+        }
+        _ => {
+            return 0;
+        }
+    }
+}
+
+// ---------- demo ----------
+
+fn report(doc: str) {
+    match parse(doc) {
+        Ok(j) => {
+            let compact = show(j, -1);
+            print("ok    ", compact);
+            // Round trip: printing the reparsed value gives the same text.
+            let again = show(unwrap_ok(parse(compact)), -1);
+            print("      round trip same: ", again == compact, ", nodes ", count_nodes(j), ", depth ", depth(j));
+        }
+        Err(e) => {
+            print("error ", e.msg, " at byte ", e.pos, " in ", quote(doc));
+        }
+    }
+}
+
+fn main() {
+    let doc = "{\"name\": \"dov\", \"version\": [0, 3, 0], \"tags\": [\"agents\", \"immutable\"], \"stable\": false, \"license\": null, \"users\": [{\"name\": \"ada\", \"score\": 9.5e1}, {\"name\": \"lin\", \"score\": -12}], \"note\": \"tab\\tquote\\\" snow \\u2603 clef \\ud834\\udd1e\"}";
+    let j = unwrap_ok(parse(doc));
+    print(show(j, 0));
+    print();
+    print("users[1].name = ", show(unwrap_or(path(j, ["users", "1", "name"]), Json::Null), -1));
+    print("version[1]    = ", show(unwrap_or(path(j, ["version", "1"]), Json::Null), -1));
+    print("missing       = ", is_none(path(j, ["users", "7"])));
+    print();
+    report("[]");
+    report("  {\"a\" : {\"b\" : [1, [2, [3]]]}}  ");
+    report("\"\\u0041\\n\"");
+    report("-0.5E+3");
+    report("[1, 2,]");
+    report("{\"a\" 1}");
+    report("[\"open");
+    report("01");
+    report("tru");
+    report("[1] x");
+}

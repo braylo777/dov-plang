@@ -208,3 +208,105 @@ fn version_and_usage() {
     assert!(String::from_utf8_lossy(&o.stdout).starts_with("dovc 0.2.0"));
     assert_eq!(dovc(&[]).status.code(), Some(2));
 }
+
+/// Each example must print exactly `examples/expected/NAME.stdout`, and its C must
+/// compile with `-std=c11 -Wall -Wextra -Werror`.
+fn example(name: &str) {
+    let file = format!("examples/{name}.dov");
+    let want =
+        std::fs::read_to_string(root().join(format!("examples/expected/{name}.stdout"))).unwrap();
+    assert_eq!(run_ok(&file), want, "{file}");
+    let src = std::fs::read_to_string(root().join(&file)).unwrap();
+    let c = dovc::compile_file(&src, root().join(&file).to_str().unwrap()).unwrap();
+    let dir = dovc::scratch_dir().unwrap();
+    std::fs::write(dir.join("dov_rt.h"), dovc::RUNTIME_H).unwrap();
+    std::fs::write(dir.join("dov_rt.c"), dovc::RUNTIME_C).unwrap();
+    std::fs::write(dir.join("prog.c"), c).unwrap();
+    strict_cc(&dir.join("prog.c"));
+}
+
+macro_rules! examples {
+    ($($name:ident),*) => { $( #[test] fn $name() { example(stringify!($name).trim_start_matches("example_")); } )* };
+}
+
+examples!(
+    example_hello,
+    example_agent_counter,
+    example_ffi,
+    example_shapes,
+    example_generics,
+    example_wordfreq,
+    example_defer,
+    example_sieve,
+    example_json,
+    example_agent_pipeline,
+    example_agent_bank,
+    example_agent_pingpong
+);
+
+#[test]
+fn there_are_twelve_examples() {
+    let n = std::fs::read_dir(root().join("examples"))
+        .unwrap()
+        .filter(|e| {
+            let n = e.as_ref().unwrap().file_name();
+            let n = n.to_string_lossy();
+            n.ends_with(".dov") && !n.starts_with("._")
+        })
+        .count();
+    assert_eq!(n, 12);
+}
+
+/// The agent examples also run under ThreadSanitizer (skipped where TSan is unavailable,
+/// unless DOV_REQUIRE_SAN is set).
+#[test]
+fn agent_examples_pass_thread_sanitizer() {
+    let probe_dir = dovc::scratch_dir().unwrap();
+    let probe = probe_dir.join("p.c");
+    std::fs::write(&probe, "int main(void) { return 0; }\n").unwrap();
+    let cc = std::env::var("CC").unwrap_or_else(|_| "cc".into());
+    let ok = Command::new(&cc)
+        .args(["-fsanitize=thread", "-o"])
+        .arg(probe_dir.join("p"))
+        .arg(&probe)
+        .status()
+        .map(|s| s.success())
+        .unwrap_or(false)
+        && Command::new(probe_dir.join("p"))
+            .status()
+            .map(|s| s.success())
+            .unwrap_or(false);
+    if !ok {
+        assert!(
+            std::env::var_os("DOV_REQUIRE_SAN").is_none(),
+            "TSan required but unavailable"
+        );
+        eprintln!("note: -fsanitize=thread unavailable; skipping");
+        return;
+    }
+    for name in [
+        "agent_counter",
+        "agent_pipeline",
+        "agent_bank",
+        "agent_pingpong",
+    ] {
+        let file = root().join(format!("examples/{name}.dov"));
+        let src = std::fs::read_to_string(&file).unwrap();
+        let c = dovc::compile_file(&src, file.to_str().unwrap()).unwrap();
+        let exe = dovc::scratch_dir().unwrap().join(name);
+        dovc::build_c(&c, &exe, &["-g", "-fsanitize=thread"]).unwrap();
+        let out = Command::new(&exe).output().unwrap();
+        assert!(
+            out.status.success(),
+            "{name}: {}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+        let want = std::fs::read_to_string(root().join(format!("examples/expected/{name}.stdout")))
+            .unwrap();
+        assert_eq!(
+            String::from_utf8_lossy(&out.stdout),
+            want,
+            "{name} under TSan"
+        );
+    }
+}

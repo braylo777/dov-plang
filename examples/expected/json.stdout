@@ -1,0 +1,44 @@
+{
+  "name": "dov",
+  "version": [
+    0,
+    3,
+    0
+  ],
+  "tags": [
+    "agents",
+    "immutable"
+  ],
+  "stable": false,
+  "license": null,
+  "users": [
+    {
+      "name": "ada",
+      "score": 9.5e1
+    },
+    {
+      "name": "lin",
+      "score": -12
+    }
+  ],
+  "note": "tab\tquote\" snow ☃ clef 𝄞"
+}
+
+users[1].name = "lin"
+version[1]    = 3
+missing       = true
+
+ok    []
+      round trip same: true, nodes 1, depth 1
+ok    {"a":{"b":[1,[2,[3]]]}}
+      round trip same: true, nodes 8, depth 5
+ok    "A\n"
+      round trip same: true, nodes 1, depth 0
+ok    -0.5E+3
+      round trip same: true, nodes 1, depth 0
+error unexpected character "]" at byte 6 in "[1, 2,]"
+error expected `:` after the key at byte 5 in "{\"a\" 1}"
+error unterminated string at byte 1 in "[\"open"
+error trailing characters at byte 1 in "01"
+error unexpected character "t" at byte 0 in "tru"
+error trailing characters at byte 4 in "[1] x"

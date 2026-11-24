@@ -1,0 +1,51 @@
+// Generic structs and functions, monomorphized per concrete type; Option from the prelude.
+struct Stack<T> {
+    items: [T]
+}
+
+fn empty<T>() -> Stack<T> {
+    return Stack { items: [] };
+}
+
+fn push<T>(s: Stack<T>, x: T) -> Stack<T> {
+    return Stack { items: append(s.items, x) };
+}
+
+fn peek<T>(s: Stack<T>) -> Option<T> {
+    if len(s.items) == 0 {
+        return None;
+    }
+    return Some(s.items[len(s.items) - 1]);
+}
+
+fn pop<T>(s: Stack<T>) -> Stack<T> {
+    if len(s.items) == 0 {
+        return s;
+    }
+    return Stack { items: s.items[0..len(s.items) - 1] };
+}
+
+struct Pair<A, B> {
+    first: A,
+    second: B
+}
+
+fn pair<A, B>(a: A, b: B) -> Pair<A, B> {
+    return Pair { first: a, second: b };
+}
+
+fn main() {
+    var nums: Stack<i64> = empty();
+    var words: Stack<str> = empty();
+    var i = 1;
+    while i <= 3 {
+        nums = push(nums, i * 10);
+        words = push(words, concat("w", to_str(i)));
+        i = i + 1;
+    }
+    print("top num: ", unwrap(peek(nums)), ", top word: ", unwrap(peek(words)));
+    nums = pop(pop(pop(nums)));
+    print("after 3 pops: ", unwrap_or(peek(nums), -1));
+    let p = pair("answer", 42);
+    print(p.first, " = ", p.second);
+}

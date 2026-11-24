@@ -1760,3 +1760,119 @@ fn kind(it: &Item) -> u8 {
         Item::Import(..) => 5,
     }
 }
+
+#[cfg(test)]
+mod tests {
+    fn chk(src: &str) -> crate::diag::Result<()> {
+        crate::check_source(src)
+    }
+
+    fn err(src: &str) -> String {
+        chk(src).unwrap_err().msg
+    }
+
+    #[test]
+    fn ok_program() {
+        chk("fn add(a: i64, b: i64) -> i64 { return a + b; } fn main() { let x = add(1, 2); print(x); }").unwrap();
+    }
+
+    #[test]
+    fn let_is_immutable() {
+        assert!(err("fn main() { let x = 1; x = 2; }")
+            .contains("cannot assign to immutable binding `x`"));
+        chk("fn main() { var x = 1; x = x + 1; }").unwrap();
+    }
+
+    #[test]
+    fn params_and_let_fields_are_immutable() {
+        assert!(err("fn f(a: i64) { a = 2; } fn main() {}").contains("immutable parameter `a`"));
+        assert!(err("agent A { let k = 1; on h() { k = 2; } } fn main() {}")
+            .contains("immutable field `k`"));
+        chk("agent A { var k = 1; on h() { k = 2; } } fn main() {}").unwrap();
+    }
+
+    #[test]
+    fn type_mismatch() {
+        assert!(err("fn main() { let x: i64 = true; }")
+            .contains("declared `i64` but its value is `bool`"));
+        assert!(err("fn main() { if 1 { } }").contains("`if` condition"));
+    }
+
+    #[test]
+    fn return_paths() {
+        assert!(err("fn f() -> i64 { } fn main() {}").contains("must return"));
+        chk("fn f(b: bool) -> i64 { if b { return 1; } else { return 2; } } fn main() {}").unwrap();
+        chk("enum E { A, B } fn f(e: E) -> i64 { match e { E::A => { return 1; } E::B => { return 2; } } } fn main() {}").unwrap();
+        chk("fn f() -> i64 { panic(\"no\"); } fn main() {}").unwrap();
+    }
+
+    #[test]
+    fn send_checks() {
+        let base = "agent C { on add(n: i64) {} } fn main() { let c = spawn C; ";
+        chk(&format!("{base} send c.add(1); }}")).unwrap();
+        assert!(err(&format!("{base} send c.nope(1); }}")).contains("no handler `nope`"));
+        assert!(err(&format!("{base} send c.add(true); }}")).contains("argument 1"));
+        assert!(err("fn main() { let x = 1; send x.add(1); }").contains("needs an agent handle"));
+    }
+
+    #[test]
+    fn struct_rules() {
+        let s = "struct P { x: i64, y: i64 }";
+        chk(&format!(
+            "{s} fn main() {{ var p = P {{ x: 1, y: 2 }}; p.x = 3; }}"
+        ))
+        .unwrap();
+        assert!(err(&format!(
+            "{s} fn main() {{ let p = P {{ x: 1, y: 2 }}; p.x = 3; }}"
+        ))
+        .contains("field of immutable binding"));
+        assert!(
+            err(&format!("{s} fn main() {{ let p = P {{ x: 1 }}; }}")).contains("missing field")
+        );
+        assert!(err("struct A { b: B } struct B { a: A } fn main() {}").contains("by value"));
+        chk("struct T { kids: [T] } fn main() {}").unwrap();
+    }
+
+    #[test]
+    fn match_rules() {
+        let e = "enum C { R, G }";
+        assert!(err(&format!(
+            "{e} fn main() {{ match C::R {{ C::R => {{}} }} }}"
+        ))
+        .contains("does not cover `G`"));
+        assert!(err("fn main() { match true { true => {} } }").contains("every value"));
+        chk("fn main() { match true { true => {} false => {} } }").unwrap();
+    }
+
+    #[test]
+    fn generic_inference() {
+        chk("fn id<T>(x: T) -> T { return x; } fn main() { let s: str = id(\"a\"); print(id(1) + 1, s); }").unwrap();
+        assert!(err("fn main() { let x = None; }").contains("cannot infer"));
+        chk("fn main() { let x: Option<i64> = None; var y = None; y = Some(true); }").unwrap();
+        assert!(err("fn f<T>(a: T) -> T { return a + a; } fn main() {}").contains("found `T`"));
+    }
+
+    #[test]
+    fn slices_and_strings() {
+        chk("fn main() { let xs = append([1], 2); let s = concat(\"a\", \"b\"); print(xs[0], s[0], len(s[0..1])); }").unwrap();
+        assert!(err("fn main() { var xs = [1]; xs[0] = 2; }").contains("slice or string"));
+        assert!(err("fn main() { let xs = [1, true]; }").contains("slice item 2"));
+    }
+
+    #[test]
+    fn defer_rules() {
+        chk("fn main() { var n = 0; defer { n = n + 1; print(n); } }").unwrap();
+        assert!(err("fn f() { defer { return; } } fn main() {}").contains("inside `defer`"));
+    }
+
+    #[test]
+    fn names() {
+        assert!(err("fn main() { print(y); }").contains("unknown variable `y`"));
+        assert!(err("fn main() { f(); }").contains("unknown function `f`"));
+        assert!(err("fn main() {} fn main() {}").contains("already defined"));
+        assert!(err("fn f() {}").contains("no `fn main()`"));
+        assert!(err("fn len() {} fn main() {}").contains("built-in"));
+        assert!(err("fn is_some() {} fn main() {}").contains("<prelude>"));
+        chk("fn main() { let x = 1; if true { let x = 2; } }").unwrap();
+    }
+}

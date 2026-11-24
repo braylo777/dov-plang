@@ -1,0 +1,30 @@
+// `defer`: cleanup runs at block exit and before every `return`, latest first.
+fn open(name: str) -> str {
+    print("open ", name);
+    return name;
+}
+
+fn close(name: str) {
+    print("close ", name);
+}
+
+fn copy(src: str, dst: str, fail: bool) -> bool {
+    let a = open(src);
+    defer close(a);
+    let b = open(dst);
+    defer close(b);
+    if fail {
+        print("copy failed");
+        return false;
+    }
+    print("copy ", a, " -> ", b);
+    return true;
+}
+
+fn main() {
+    let first = copy("in.txt", "out.txt", false);
+    print("ok = ", first);
+    print("---");
+    let second = copy("in.txt", "full.txt", true);
+    print("ok = ", second);
+}

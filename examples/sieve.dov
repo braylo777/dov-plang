@@ -1,0 +1,37 @@
+// Sieve of Eratosthenes over immutable slices: each step builds a new slice.
+fn sieve(n: i64) -> [i64] {
+    var marks: [bool] = [];
+    var i = 0;
+    while i <= n {
+        marks = append(marks, i >= 2);
+        i = i + 1;
+    }
+    var primes: [i64] = [];
+    i = 2;
+    while i <= n {
+        if marks[i] {
+            primes = append(primes, i);
+            // Rebuild the marks with multiples of i cleared.
+            var next: [bool] = [];
+            var k = 0;
+            while k <= n {
+                next = append(next, marks[k] && (k == i || k % i != 0));
+                k = k + 1;
+            }
+            marks = next;
+        }
+        i = i + 1;
+    }
+    return primes;
+}
+
+fn main() {
+    let ps = sieve(100);
+    var line = "";
+    var i = 0;
+    while i < len(ps) {
+        line = concat(concat(line, to_str(ps[i])), " ");
+        i = i + 1;
+    }
+    print(len(ps), " primes below 100: ", line[0..len(line) - 1]);
+}

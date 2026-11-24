@@ -1,0 +1,26 @@
+// Two agents trade a ball until the rally ends; every handler runs to completion, in FIFO order.
+agent Player {
+    var hits = 0;
+    on ball(me: Player, opponent: Player, rally: i64, name: str) {
+        hits = hits + 1;
+        if rally == 0 {
+            print(name, " wins the point (", hits, " hits by this player)");
+            return;
+        }
+        print(name, " hits (", rally, " left)");
+        send opponent.ball(opponent, me, rally - 1, other(name));
+    }
+}
+
+fn other(n: str) -> str {
+    if n == "ping" {
+        return "pong";
+    }
+    return "ping";
+}
+
+fn main() {
+    let a = spawn Player;
+    let b = spawn Player;
+    send a.ball(a, b, 5, "ping");
+}

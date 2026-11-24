@@ -1,0 +1,67 @@
+// Strings and slices: split text into words and count them (immutable data, new slices).
+struct Count {
+    word: str,
+    n: i64
+}
+
+fn is_letter(c: i64) -> bool {
+    return (c >= 97 && c <= 122) || (c >= 65 && c <= 90);
+}
+
+fn lower(c: i64) -> i64 {
+    if c >= 65 && c <= 90 {
+        return c + 32;
+    }
+    return c;
+}
+
+fn words(text: str) -> [str] {
+    var out: [str] = [];
+    var cur = "";
+    var i = 0;
+    while i <= len(text) {
+        if i < len(text) && is_letter(text[i]) {
+            cur = concat(cur, char_of(lower(text[i])));
+        } else if len(cur) > 0 {
+            out = append(out, cur);
+            cur = "";
+        }
+        i = i + 1;
+    }
+    return out;
+}
+
+fn bump(cs: [Count], w: str) -> [Count] {
+    var out: [Count] = [];
+    var found = false;
+    var i = 0;
+    while i < len(cs) {
+        var c = cs[i];
+        if c.word == w {
+            c.n = c.n + 1;
+            found = true;
+        }
+        out = append(out, c);
+        i = i + 1;
+    }
+    if !found {
+        out = append(out, Count { word: w, n: 1 });
+    }
+    return out;
+}
+
+fn main() {
+    let ws = words("The cat saw the dog. The dog saw a CAT!");
+    var counts: [Count] = [];
+    var i = 0;
+    while i < len(ws) {
+        counts = bump(counts, ws[i]);
+        i = i + 1;
+    }
+    print(len(ws), " words, ", len(counts), " distinct");
+    i = 0;
+    while i < len(counts) {
+        print("  ", counts[i].word, ": ", counts[i].n);
+        i = i + 1;
+    }
+}

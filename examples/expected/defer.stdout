@@ -1,0 +1,13 @@
+open in.txt
+open out.txt
+copy in.txt -> out.txt
+close out.txt
+close in.txt
+ok = true
+---
+open in.txt
+open full.txt
+copy failed
+close full.txt
+close in.txt
+ok = false

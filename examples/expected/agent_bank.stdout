@@ -1,0 +1,6 @@
+ann ok
+bo ok
+cy rejected: insufficient funds
+di rejected: deposit must be positive
+ed ok
+balance = 77

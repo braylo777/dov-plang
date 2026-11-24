@@ -1,0 +1,70 @@
+// A bank agent owns the balances; tellers only send messages. Results are Result<i64, str>.
+enum Cmd {
+    Deposit(i64),
+    Withdraw(i64)
+}
+
+agent Bank {
+    var balance = 0;
+    var log: [str] = [];
+    on run(who: str, c: Cmd) {
+        let r = apply(balance, c);
+        match r {
+            Ok(b) => {
+                balance = b;
+                log = append(log, concat(who, " ok"));
+            }
+            Err(e) => {
+                log = append(log, concat(concat(who, " rejected: "), e));
+            }
+        }
+    }
+    on report() {
+        var i = 0;
+        while i < len(log) {
+            print(log[i]);
+            i = i + 1;
+        }
+        print("balance = ", balance);
+    }
+}
+
+fn apply(balance: i64, c: Cmd) -> Result<i64, str> {
+    match c {
+        Cmd::Deposit(n) => {
+            if n <= 0 {
+                return Err("deposit must be positive");
+            }
+            return Ok(balance + n);
+        }
+        Cmd::Withdraw(n) => {
+            if n > balance {
+                return Err("insufficient funds");
+            }
+            return Ok(balance - n);
+        }
+    }
+}
+
+agent Teller {
+    on serve(bank: Bank, name: str, c: Cmd) {
+        send bank.run(name, c);
+    }
+
+    on close(bank: Bank) {
+        send bank.report();
+    }
+}
+
+fn main() {
+    let bank = spawn Bank;
+    let t1 = spawn Teller;
+    let t2 = spawn Teller;
+    send t1.serve(bank, "ann", Cmd::Deposit(100));
+    send t2.serve(bank, "bo", Cmd::Withdraw(30));
+    send t1.serve(bank, "cy", Cmd::Withdraw(500));
+    send t2.serve(bank, "di", Cmd::Deposit(-5));
+    send t1.serve(bank, "ed", Cmd::Deposit(7));
+    // Ask through a teller: its earlier messages are handled first (FIFO).
+    send t2.close(bank);
+}

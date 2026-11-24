@@ -1,0 +1,51 @@
+// Agents in a pipeline: Parser -> Summer -> Printer. Messages carry immutable values.
+struct Stats {
+    count: i64,
+    total: i64
+}
+
+agent Printer {
+    on show(label: str, s: Stats) {
+        print(label, ": ", s.count, " numbers, total ", s.total);
+    }
+}
+
+agent Summer {
+    var s = Stats { count: 0, total: 0 };
+    let out = spawn Printer;
+    on add(xs: [i64]) {
+        var i = 0;
+        while i < len(xs) {
+            s.total = s.total + xs[i];
+            s.count = s.count + 1;
+            i = i + 1;
+        }
+        send out.show("running", s);
+    }
+}
+
+agent Parser {
+    let next = spawn Summer;
+    on line(text: str) {
+        var xs: [i64] = [];
+        var n = 0;
+        var i = 0;
+        while i <= len(text) {
+            if i < len(text) && text[i] >= 48 && text[i] <= 57 {
+                n = n * 10 + text[i] - 48;
+            } else {
+                xs = append(xs, n);
+                n = 0;
+            }
+            i = i + 1;
+        }
+        send next.add(xs);
+    }
+}
+
+fn main() {
+    let p = spawn Parser;
+    send p.line("1 2 3");
+    send p.line("10 20");
+    send p.line("100");
+}
