@@ -1,0 +1,5 @@
+tests/golden/lib/bad_types.dov:2:12: error: return value: expected `i64`, found `str`
+  |
+2 |     return "not a number";
+  |            ^
+  = hint: there are no implicit conversions; change the value to the expected type

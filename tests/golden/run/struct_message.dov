@@ -1,0 +1,17 @@
+struct Order {
+    id: i64,
+    item: str,
+    qty: i64
+}
+
+agent Shop {
+    on order(o: Order) {
+        print("#", o.id, " ", o.qty, "x ", o.item);
+    }
+}
+
+fn main() {
+    let s = spawn Shop;
+    send s.order(Order { id: 1, item: "tea", qty: 2 });
+    send s.order(Order { id: 2, item: "cake", qty: 1 });
+}

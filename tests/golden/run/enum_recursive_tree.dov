@@ -1,0 +1,26 @@
+enum Tree {
+    Leaf(i64),
+    Node([Tree])
+}
+
+fn sum(t: Tree) -> i64 {
+    match t {
+        Tree::Leaf(v) => {
+            return v;
+        }
+        Tree::Node(kids) => {
+            var s = 0;
+            var i = 0;
+            while i < len(kids) {
+                s = s + sum(kids[i]);
+                i = i + 1;
+            }
+            return s;
+        }
+    }
+}
+
+fn main() {
+    let t = Tree::Node([Tree::Leaf(1), Tree::Node([Tree::Leaf(2), Tree::Leaf(3)]), Tree::Leaf(4)]);
+    print(sum(t));
+}

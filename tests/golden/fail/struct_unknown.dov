@@ -1,0 +1,7 @@
+fn main() {
+    let p = Pointt { x: 1 };
+}
+
+struct Point {
+    x: i64
+}

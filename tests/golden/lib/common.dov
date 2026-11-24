@@ -1,0 +1,3 @@
+fn greet(who: str) -> str {
+    return concat("hi ", who);
+}

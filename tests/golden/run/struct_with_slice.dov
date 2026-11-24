@@ -1,0 +1,20 @@
+struct Bag {
+    name: str,
+    items: [i64]
+}
+
+fn total(b: Bag) -> i64 {
+    var t = 0;
+    var i = 0;
+    while i < len(b.items) {
+        t = t + b.items[i];
+        i = i + 1;
+    }
+    return t;
+}
+
+fn main() {
+    var b = Bag { name: "b", items: [1, 2, 3] };
+    b.items = append(b.items, 10);
+    print(b.name, " ", len(b.items), " ", total(b));
+}

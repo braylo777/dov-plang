@@ -1,0 +1,14 @@
+fn f() -> i64 {
+    let x = "outer";
+    defer print(x);
+    if true {
+        let x = "inner";
+        print(x);
+        return 1;
+    }
+    return 0;
+}
+
+fn main() {
+    print(f());
+}

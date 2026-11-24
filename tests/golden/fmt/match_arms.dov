@@ -1,0 +1,1 @@
+fn main(){match x{E::A(a,_)=>{print(a);}B=>{}-1=>{} _=>{print(0);}}}

@@ -1,0 +1,10 @@
+fn main() {
+    let xs = [Some(1), None, Some(3)];
+    var s = 0;
+    var i = 0;
+    while i < len(xs) {
+        s = s + unwrap_or(xs[i], 100);
+        i = i + 1;
+    }
+    print(s);
+}

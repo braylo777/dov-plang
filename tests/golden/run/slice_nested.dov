@@ -1,0 +1,14 @@
+fn main() {
+    let grid = [[1, 2, 3], [4, 5, 6]];
+    var s = 0;
+    var r = 0;
+    while r < len(grid) {
+        var c = 0;
+        while c < len(grid[r]) {
+            s = s + grid[r][c];
+            c = c + 1;
+        }
+        r = r + 1;
+    }
+    print(s, " ", grid[1][2]);
+}

@@ -1,0 +1,4 @@
+fn main() {
+    print(char_of(65));
+    print(char_of(256));
+}

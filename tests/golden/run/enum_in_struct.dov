@@ -1,0 +1,25 @@
+enum Kind {
+    Num,
+    Word
+}
+
+struct Tok {
+    kind: Kind,
+    text: str
+}
+
+fn show(t: Tok) -> str {
+    match t.kind {
+        Kind::Num => {
+            return concat("num:", t.text);
+        }
+        Kind::Word => {
+            return concat("word:", t.text);
+        }
+    }
+}
+
+fn main() {
+    print(show(Tok { kind: Kind::Num, text: "42" }));
+    print(show(Tok { kind: Kind::Word, text: "hi" }));
+}

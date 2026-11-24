@@ -1,0 +1,11 @@
+struct P {
+    x: i64
+}
+
+fn main() {
+    let x = 5;
+    let p = P { x: x };
+    var q = P { x: 1 };
+    q.x = p.x + x;
+    print(q.x);
+}

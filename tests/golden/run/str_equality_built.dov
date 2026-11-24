@@ -1,0 +1,4 @@
+fn main() {
+    let a = concat("fo", "o");
+    print(a == "foo", " ", a != "foo", " ", a[0..2] == "fo", " ", "" == concat("", ""));
+}

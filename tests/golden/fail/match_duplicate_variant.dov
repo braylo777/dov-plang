@@ -1,0 +1,12 @@
+enum C {
+    R,
+    G
+}
+
+fn main() {
+    match C::R {
+        C::R => {}
+        C::R => {}
+        C::G => {}
+    }
+}

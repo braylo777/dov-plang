@@ -1,0 +1,19 @@
+agent Summer {
+    on sum(xs: [i64]) {
+        var s = 0;
+        var i = 0;
+        while i < len(xs) {
+            s = s + xs[i];
+            i = i + 1;
+        }
+        print("sum=", s);
+    }
+}
+
+fn main() {
+    let a = spawn Summer;
+    var xs = [1, 2];
+    send a.sum(xs);
+    xs = append(xs, 100);
+    send a.sum(xs);
+}

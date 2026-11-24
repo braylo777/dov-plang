@@ -1,0 +1,5 @@
+import "../common.dov";
+
+fn deep() -> i64 {
+    return len(greet("x"));
+}

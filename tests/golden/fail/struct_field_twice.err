@@ -1,0 +1,5 @@
+tests/golden/fail/struct_field_twice.dov:6:26: error: field `x` is given twice
+  |
+6 |     let p = P { x: 1, x: 2 };
+  |                          ^
+  = hint: give each field once

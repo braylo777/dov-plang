@@ -1,0 +1,6 @@
+struct P<T> {
+    x: T,
+    y: i64,
+}
+
+fn main() {}

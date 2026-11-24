@@ -1,0 +1,5 @@
+tests/golden/fail/generic_cannot_infer.dov:2:13: error: cannot infer the full type of this expression (`Option<_>`)
+  |
+2 |     let x = None;
+  |             ^
+  = hint: add a type annotation, e.g. `let x: Option<i64> = None;` or `let xs: [str] = [];`

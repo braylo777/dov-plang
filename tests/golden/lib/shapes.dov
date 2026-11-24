@@ -1,0 +1,20 @@
+struct Point {
+    x: i64,
+    y: i64
+}
+
+enum Shape {
+    Circle(Point, i64),
+    Square(Point, i64)
+}
+
+fn area(s: Shape) -> i64 {
+    match s {
+        Shape::Circle(_, r) => {
+            return 3 * r * r;
+        }
+        Shape::Square(_, a) => {
+            return a * a;
+        }
+    }
+}

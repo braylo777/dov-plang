@@ -1,0 +1,20 @@
+fn word(n: i64) -> str {
+    match n {
+        0 => {
+            return "zero";
+        }
+        1 => {
+            return "one";
+        }
+        -1 => {
+            return "minus one";
+        }
+        _ => {
+            return "many";
+        }
+    }
+}
+
+fn main() {
+    print(word(0), ", ", word(1), ", ", word(-1), ", ", word(42));
+}

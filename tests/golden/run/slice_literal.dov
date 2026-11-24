@@ -1,0 +1,4 @@
+fn main() {
+    let xs = [10, 20, 30];
+    print(len(xs), " ", xs[0], " ", xs[2], " ", xs[1] + xs[2]);
+}

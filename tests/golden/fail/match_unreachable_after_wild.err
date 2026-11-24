@@ -1,0 +1,5 @@
+tests/golden/fail/match_unreachable_after_wild.dov:9:9: error: unreachable pattern: an earlier `_` arm already matches everything
+  |
+9 |         C::R => {}
+  |         ^
+  = hint: remove this arm, or move the `_` arm last

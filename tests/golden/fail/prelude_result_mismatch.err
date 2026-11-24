@@ -1,0 +1,5 @@
+tests/golden/fail/prelude_result_mismatch.dov:2:16: error: value 1 of `Err`: expected `str`, found `i64`
+  |
+2 |     return Err(5);
+  |                ^
+  = hint: there are no implicit conversions; change the value to the expected type

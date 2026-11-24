@@ -1,0 +1,4 @@
+fn main() {
+    defer print(later);
+    let later = 1;
+}

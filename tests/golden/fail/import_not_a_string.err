@@ -1,0 +1,5 @@
+tests/golden/fail/import_not_a_string.dov:1:8: error: expected a file path string after `import`, found `mathlib`
+  |
+1 | import mathlib;
+  |        ^
+  = hint: write `import "other.dov";` (the path is relative to this file)

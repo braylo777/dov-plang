@@ -1,0 +1,13 @@
+fn reverse(s: str) -> str {
+    var out = "";
+    var i = len(s) - 1;
+    while i >= 0 {
+        out = concat(out, s[i..i + 1]);
+        i = i - 1;
+    }
+    return out;
+}
+
+fn main() {
+    print(reverse("stressed"), " ", reverse(""), " ", reverse("a"));
+}

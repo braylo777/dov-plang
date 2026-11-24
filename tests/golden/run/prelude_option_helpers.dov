@@ -1,0 +1,6 @@
+fn main() {
+    let a = Some(3);
+    let b: Option<i64> = None;
+    print(is_some(a), is_none(a), is_some(b), is_none(b));
+    print(unwrap(a), " ", unwrap_or(b, 9), " ", unwrap_or(a, 9));
+}

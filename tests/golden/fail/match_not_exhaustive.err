@@ -1,0 +1,5 @@
+tests/golden/fail/match_not_exhaustive.dov:8:5: error: `match` on `C` does not cover `B`
+  |
+8 |     match C::R {
+  |     ^
+  = hint: add an arm for each missing variant, or a `_ => { ... }` arm

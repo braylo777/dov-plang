@@ -1,0 +1,12 @@
+fn last<T>(xs: [T]) -> Option<T> {
+    if len(xs) == 0 {
+        return None;
+    }
+    return Some(xs[len(xs) - 1]);
+}
+
+fn main() {
+    print(unwrap_or(last([1, 2, 3]), 0), " ", unwrap_or(last(["a", "b"]), "?"));
+    let e: [i64] = [];
+    print(unwrap_or(last(e), -1));
+}

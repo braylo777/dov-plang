@@ -1,0 +1,5 @@
+tests/golden/fail/str_index_bool.dov:3:13: error: index: expected `i64`, found `bool`
+  |
+3 |     print(s[true]);
+  |             ^
+  = hint: indexes are i64

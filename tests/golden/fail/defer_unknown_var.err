@@ -1,0 +1,5 @@
+tests/golden/fail/defer_unknown_var.dov:2:17: error: unknown variable `later`
+  |
+2 |     defer print(later);
+  |                 ^
+  = hint: declare it first with `let later = ...;`

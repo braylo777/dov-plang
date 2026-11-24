@@ -1,0 +1,5 @@
+tests/golden/fail/struct_assign_field_of_param.dov:6:5: error: cannot assign to a field of immutable parameter `p`
+  |
+6 |     p.x = 2;
+  |     ^
+  = hint: parameters are immutable; copy it first: `var p2 = p;`

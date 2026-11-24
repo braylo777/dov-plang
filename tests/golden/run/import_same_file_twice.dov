@@ -1,0 +1,7 @@
+import "../lib/mathlib.dov";
+import "../lib/mathlib.dov";
+import "../lib/../lib/mathlib.dov";
+
+fn main() {
+    print(cube(2));
+}

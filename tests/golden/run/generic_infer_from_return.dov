@@ -1,0 +1,13 @@
+fn empty<T>() -> [T] {
+    return [];
+}
+
+fn nothing<T>() -> Option<T> {
+    return None;
+}
+
+fn main() {
+    let xs: [i64] = empty();
+    let o: Option<str> = nothing();
+    print(len(xs), " ", is_some(o));
+}

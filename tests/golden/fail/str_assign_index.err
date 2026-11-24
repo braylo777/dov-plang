@@ -1,0 +1,5 @@
+tests/golden/fail/str_assign_index.dov:3:6: error: cannot assign to an item of a slice or string
+  |
+3 |     s[0] = 65;
+  |      ^
+  = hint: slice and string contents are immutable; build a new one with `append` or `concat`

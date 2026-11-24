@@ -1,0 +1,5 @@
+tests/golden/fail/prelude_option_no_args.dov:1:6: error: enum `Option` takes 1 type argument(s) but got 0
+  |
+1 | fn f(o: Option) {}
+  |      ^
+  = hint: write `Option` with exactly 1 type argument(s)

@@ -1,0 +1,8 @@
+enum C {
+    Red,
+    Green
+}
+
+fn main() {
+    let c = C::Gren;
+}

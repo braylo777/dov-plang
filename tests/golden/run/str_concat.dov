@@ -1,0 +1,6 @@
+fn main() {
+    let a = concat("ab", "cd");
+    let b = concat(a, "");
+    let c = concat("", a);
+    print(a, " ", b, " ", c, " ", len(concat(a, a)));
+}

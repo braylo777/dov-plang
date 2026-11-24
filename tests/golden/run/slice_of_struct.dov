@@ -1,0 +1,14 @@
+struct P {
+    x: i64,
+    y: i64
+}
+
+fn main() {
+    var ps: [P] = [];
+    var i = 0;
+    while i < 3 {
+        ps = append(ps, P { x: i, y: i * 10 });
+        i = i + 1;
+    }
+    print(ps[2].x, " ", ps[2].y, " ", ps[0].y);
+}

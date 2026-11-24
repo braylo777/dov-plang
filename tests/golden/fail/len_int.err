@@ -1,0 +1,5 @@
+tests/golden/fail/len_int.dov:2:15: error: `len` takes a str or a slice, found `i64`
+  |
+2 |     print(len(5));
+  |               ^
+  = hint: `len` counts the bytes of a str or the items of a slice

@@ -1,0 +1,5 @@
+import "../lib/optlib.dov";
+
+fn main() {
+    print(unwrap_or(safe_div(10, 2), -1), " ", unwrap_or(safe_div(1, 0), -1));
+}

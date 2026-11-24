@@ -1,0 +1,5 @@
+tests/golden/fail/str_plus.dov:2:13: error: left operand: expected `i64`, found `str`
+  |
+2 |     let s = "a" + "b";
+  |             ^
+  = hint: arithmetic works on i64 only; join strings with `concat(a, b)`

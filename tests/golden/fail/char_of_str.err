@@ -1,0 +1,5 @@
+tests/golden/fail/char_of_str.dov:2:19: error: argument 1 of `char_of`: expected `i64`, found `str`
+  |
+2 |     print(char_of("a"));
+  |                   ^
+  = hint: there are no implicit conversions; change the value to the expected type

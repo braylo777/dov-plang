@@ -1,0 +1,6 @@
+fn main() {
+    defer print(1);
+    defer {
+        print(2);
+    }
+}

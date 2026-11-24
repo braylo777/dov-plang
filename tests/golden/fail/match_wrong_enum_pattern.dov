@@ -1,0 +1,13 @@
+enum A {
+    X
+}
+
+enum B {
+    X
+}
+
+fn main() {
+    match A::X {
+        B::X => {}
+    }
+}

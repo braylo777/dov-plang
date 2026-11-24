@@ -1,0 +1,5 @@
+fn f() -> Result<i64, str> {
+    return Err(5);
+}
+
+fn main() {}

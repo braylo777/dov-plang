@@ -1,0 +1,5 @@
+tests/golden/fail/generic_duplicate_tparam.dov:1:1: error: type parameter `T` is declared twice
+  |
+1 | fn f<T, T>(a: T) {}
+  | ^
+  = hint: give each type parameter its own name

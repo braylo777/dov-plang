@@ -1,0 +1,5 @@
+extern "C" fn atol(s: str) -> i64;
+
+fn main() {
+    print(atol("123") + atol(concat("4", "5")));
+}

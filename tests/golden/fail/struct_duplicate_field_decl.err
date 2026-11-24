@@ -1,0 +1,5 @@
+tests/golden/fail/struct_duplicate_field_decl.dov:3:5: error: duplicate field `x`
+  |
+3 |     x: bool
+  |     ^
+  = hint: each field in a struct needs its own name

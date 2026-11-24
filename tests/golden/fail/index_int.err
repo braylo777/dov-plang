@@ -1,0 +1,5 @@
+tests/golden/fail/index_int.dov:3:12: error: cannot index a value of type `i64`
+  |
+3 |     print(n[0]);
+  |            ^
+  = hint: only `str` and slices `[T]` can be indexed

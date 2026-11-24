@@ -1,0 +1,14 @@
+struct Box<T> {
+    v: T
+}
+
+fn get<T>(b: Box<T>) -> T {
+    return b.v;
+}
+
+fn main() {
+    let a = Box { v: 1 };
+    let b = Box { v: "s" };
+    let c = Box { v: Box { v: false } };
+    print(get(a), get(b), get(get(c)));
+}

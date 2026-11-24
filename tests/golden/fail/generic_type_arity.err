@@ -1,0 +1,5 @@
+tests/golden/fail/generic_type_arity.dov:2:5: error: enum `Option` takes 1 type argument(s) but got 2
+  |
+2 |     let x: Option<i64, i64> = None;
+  |     ^
+  = hint: write `Option` with exactly 1 type argument(s)

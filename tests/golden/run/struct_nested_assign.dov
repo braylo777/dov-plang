@@ -1,0 +1,21 @@
+struct Point {
+    x: i64,
+    y: i64
+}
+
+struct Rect {
+    a: Point,
+    b: Point
+}
+
+fn area(r: Rect) -> i64 {
+    return (r.b.x - r.a.x) * (r.b.y - r.a.y);
+}
+
+fn main() {
+    var r = Rect { a: Point { x: 0, y: 0 }, b: Point { x: 2, y: 3 } };
+    print(area(r));
+    r.b.x = 10;
+    r.a = Point { x: 5, y: 1 };
+    print(area(r), " ", r.a.x, " ", r.b.x);
+}

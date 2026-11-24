@@ -1,0 +1,5 @@
+tests/golden/fail/prelude_redefine_unwrap.dov:1:1: error: `unwrap` is already defined at <prelude>:29:1
+  |
+1 | fn unwrap(x: i64) -> i64 {
+  | ^
+  = hint: functions, externs, agents, structs and enums share one namespace; rename one of them

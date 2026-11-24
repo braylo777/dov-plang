@@ -1,0 +1,14 @@
+fn f(b: bool) -> i64 {
+    match b {
+        true => {
+            return 1;
+        }
+        false => {
+            return 0;
+        }
+    }
+}
+
+fn main() {
+    print(f(true), f(false), f(1 < 2));
+}

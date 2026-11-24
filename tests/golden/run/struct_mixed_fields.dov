@@ -1,0 +1,19 @@
+struct User {
+    name: str,
+    age: i64,
+    admin: bool
+}
+
+fn describe(u: User) -> str {
+    if u.admin {
+        return concat(u.name, " (admin)");
+    }
+    return u.name;
+}
+
+fn main() {
+    let a = User { name: "ada", age: 36, admin: true };
+    let b = User { name: "bob", age: 20, admin: false };
+    print(describe(a), " ", a.age);
+    print(describe(b), " ", b.admin);
+}

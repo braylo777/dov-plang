@@ -1,0 +1,9 @@
+enum E {
+    A(i64, i64)
+}
+
+fn main() {
+    match E::A(1, 2) {
+        E::A(x) => {}
+    }
+}

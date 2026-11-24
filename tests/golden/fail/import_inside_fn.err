@@ -1,0 +1,5 @@
+tests/golden/fail/import_inside_fn.dov:1:13: error: expected an expression, found keyword `import`
+  |
+1 | fn main() { import "x.dov"; }
+  |             ^
+  = hint: an expression is a literal, a name, a call, `spawn Agent`, `[...]`, or `( ... )`

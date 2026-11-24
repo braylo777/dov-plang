@@ -1,0 +1,5 @@
+tests/golden/fail/enum_variant_arg_count.dov:6:13: error: variant `E::A` takes 1 value(s) but got 2
+  |
+6 |     let e = E::A(1, 2);
+  |             ^
+  = hint: write `E::A(...)` with 1 value(s)

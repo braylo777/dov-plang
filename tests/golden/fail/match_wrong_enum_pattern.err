@@ -1,0 +1,5 @@
+tests/golden/fail/match_wrong_enum_pattern.dov:11:9: error: pattern `B::X` does not match a value of type `A`
+   |
+11 |         B::X => {}
+   |         ^
+   = hint: use a variant of `A`

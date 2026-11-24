@@ -1,0 +1,5 @@
+fn main() {
+    let s = "hello";
+    print(len(s), " ", s[0], " ", s[4], " ", len(""));
+    print(len("é"));
+}

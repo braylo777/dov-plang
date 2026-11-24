@@ -1,0 +1,14 @@
+struct Box<T> {
+    v: T
+}
+
+fn boxed<T>(v: T) -> Box<T> {
+    return Box { v: v };
+}
+
+fn first_or<T>(xs: [T], d: T) -> T {
+    if len(xs) == 0 {
+        return d;
+    }
+    return xs[0];
+}

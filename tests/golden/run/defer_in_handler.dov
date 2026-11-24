@@ -1,0 +1,13 @@
+agent Log {
+    var n = 0;
+    on hit() {
+        defer print("handled ", n);
+        n = n + 1;
+    }
+}
+
+fn main() {
+    let l = spawn Log;
+    send l.hit();
+    send l.hit();
+}

@@ -1,0 +1,3 @@
+fn square(n: i64) -> i64 {
+    return n * n;
+}

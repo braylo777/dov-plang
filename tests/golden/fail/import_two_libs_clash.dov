@@ -1,0 +1,4 @@
+import "../lib/mathlib.dov";
+import "../lib/dup_square.dov";
+
+fn main() {}

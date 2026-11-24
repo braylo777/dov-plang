@@ -1,0 +1,13 @@
+fn main() {
+    let x: Option<Option<i64>> = Some(None);
+    let y = Some(Some(3));
+    match x {
+        Some(inner) => {
+            print("some, inner none: ", is_none(inner));
+        }
+        None => {
+            print("none");
+        }
+    }
+    print(unwrap(unwrap(y)));
+}

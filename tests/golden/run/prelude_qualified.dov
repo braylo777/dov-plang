@@ -1,0 +1,11 @@
+fn main() {
+    let a = Option::Some(1);
+    let b: Result<bool, str> = Result::Err("x");
+    match a {
+        Option::Some(v) => {
+            print(v);
+        }
+        Option::None => {}
+    }
+    print(unwrap_err(b));
+}

@@ -1,0 +1,5 @@
+tests/golden/fail/struct_recursive_by_value.dov:1:1: error: `Node` contains itself by value, so it would have infinite size
+  |
+1 | struct Node {
+  | ^
+  = hint: put the recursive part in a slice, e.g. `children: [Node]`

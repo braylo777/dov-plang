@@ -1,0 +1,12 @@
+fn f() -> i64 {
+    var x = 1;
+    defer {
+        x = 100;
+        print("defer sees ", x);
+    }
+    return x;
+}
+
+fn main() {
+    print(f());
+}

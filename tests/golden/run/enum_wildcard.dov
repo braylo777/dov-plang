@@ -1,0 +1,24 @@
+enum Dir {
+    N,
+    E,
+    S,
+    W
+}
+
+fn vertical(d: Dir) -> bool {
+    match d {
+        Dir::N => {
+            return true;
+        }
+        Dir::S => {
+            return true;
+        }
+        _ => {
+            return false;
+        }
+    }
+}
+
+fn main() {
+    print(vertical(Dir::N), vertical(Dir::E), vertical(Dir::S), vertical(Dir::W));
+}

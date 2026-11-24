@@ -1,0 +1,8 @@
+fn main() {
+    defer print("outer");
+    if true {
+        defer print("inner");
+        print("in block");
+    }
+    print("after block");
+}

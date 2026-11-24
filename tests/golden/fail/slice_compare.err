@@ -1,0 +1,5 @@
+tests/golden/fail/slice_compare.dov:2:11: error: cannot compare values of type `[i64]`
+  |
+2 |     print([1] == [1]);
+  |           ^
+  = hint: `==` and `!=` work on i64, bool and str only; use `match` for enums

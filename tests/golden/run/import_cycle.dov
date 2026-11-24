@@ -1,0 +1,5 @@
+import "../lib/cyc1.dov";
+
+fn main() {
+    print(three());
+}

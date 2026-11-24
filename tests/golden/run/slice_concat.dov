@@ -1,0 +1,7 @@
+fn main() {
+    let a = [1, 2];
+    let b = [3];
+    let c = concat(a, b);
+    let e: [i64] = [];
+    print(len(c), c[0], c[2], " ", len(concat(e, e)), " ", len(concat(c, e)));
+}

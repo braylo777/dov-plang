@@ -1,0 +1,5 @@
+tests/golden/fail/defer_missing_stmt.dov:1:19: error: expected an expression, found `}`
+  |
+1 | fn main() { defer }
+  |                   ^
+  = hint: an expression is a literal, a name, a call, `spawn Agent`, `[...]`, or `( ... )`

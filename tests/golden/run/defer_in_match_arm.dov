@@ -1,0 +1,16 @@
+fn f(o: Option<i64>) -> i64 {
+    match o {
+        Some(v) => {
+            defer print("arm done");
+            return v;
+        }
+        None => {
+            return -1;
+        }
+    }
+}
+
+fn main() {
+    print(f(Some(3)));
+    print(f(None));
+}

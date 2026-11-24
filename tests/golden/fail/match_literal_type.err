@@ -1,0 +1,5 @@
+tests/golden/fail/match_literal_type.dov:3:9: error: pattern type mismatch: expected `i64`, found `str`
+  |
+3 |         "one" => {}
+  |         ^
+  = hint: each pattern must have the type of the matched value

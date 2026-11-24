@@ -1,0 +1,16 @@
+fn join(xs: [str], sep: str) -> str {
+    var out = "";
+    var i = 0;
+    while i < len(xs) {
+        if i > 0 {
+            out = concat(out, sep);
+        }
+        out = concat(out, xs[i]);
+        i = i + 1;
+    }
+    return out;
+}
+
+fn main() {
+    print(join(["a", "b", "c"], ", "), "|", join([], "-"), "|");
+}

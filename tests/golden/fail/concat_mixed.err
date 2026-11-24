@@ -1,0 +1,5 @@
+tests/golden/fail/concat_mixed.dov:2:23: error: argument 2 of `concat`: expected `str`, found `i64`
+  |
+2 |     print(concat("a", 1));
+  |                       ^
+  = hint: there are no implicit conversions; change the value to the expected type

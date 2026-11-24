@@ -1,0 +1,5 @@
+tests/golden/fail/append_not_slice.dov:2:20: error: argument 1 of `append`: expected a slice, found `i64`
+  |
+2 |     let x = append(1, 2);
+  |                    ^
+  = hint: `append(xs, x)` returns a new slice with `x` at the end

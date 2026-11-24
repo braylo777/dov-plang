@@ -1,0 +1,7 @@
+fn main() {
+    let a: Option<i64> = None;
+    var b: Option<str> = None;
+    b = Some("set");
+    let xs: [bool] = [];
+    print(is_none(a), " ", unwrap(b), " ", len(xs));
+}

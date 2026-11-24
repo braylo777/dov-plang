@@ -1,0 +1,10 @@
+fn count<T>(xs: [T], i: i64) -> i64 {
+    if i >= len(xs) {
+        return 0;
+    }
+    return 1 + count(xs, i + 1);
+}
+
+fn main() {
+    print(count([1, 2, 3, 4], 0), " ", count(["x"], 0), " ", count([[1], [2]], 0));
+}

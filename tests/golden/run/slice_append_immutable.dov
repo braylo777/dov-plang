@@ -1,0 +1,7 @@
+fn main() {
+    let a = [1, 2];
+    let b = append(a, 3);
+    let c = append(a, 4);
+    let d = append(b, 5);
+    print(len(a), " ", b[2], " ", c[2], " ", d[3], " ", b[2]);
+}

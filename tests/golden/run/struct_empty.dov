@@ -1,0 +1,10 @@
+struct Unit {}
+
+fn take(u: Unit) -> i64 {
+    return 1;
+}
+
+fn main() {
+    let u = Unit {};
+    print(take(u) + take(Unit {}));
+}

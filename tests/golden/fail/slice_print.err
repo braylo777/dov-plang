@@ -1,0 +1,5 @@
+tests/golden/fail/slice_print.dov:2:11: error: `print` cannot show a value of type `[i64]`
+  |
+2 |     print([1, 2]);
+  |           ^
+  = hint: `print` takes i64, bool and str arguments

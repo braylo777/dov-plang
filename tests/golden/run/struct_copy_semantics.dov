@@ -1,0 +1,18 @@
+struct Point {
+    x: i64,
+    y: i64
+}
+
+fn bump(p: Point) -> Point {
+    var q = p;
+    q.x = q.x + 100;
+    return q;
+}
+
+fn main() {
+    var a = Point { x: 1, y: 2 };
+    var b = a;
+    b.x = 9;
+    let c = bump(a);
+    print(a.x, " ", b.x, " ", c.x);
+}

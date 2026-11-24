@@ -1,0 +1,5 @@
+tests/golden/fail/match_on_struct.dov:7:11: error: cannot `match` on a value of type `P`
+  |
+7 |     match p {
+  |           ^
+  = hint: `match` works on enums, i64, bool and str

@@ -1,0 +1,5 @@
+tests/golden/fail/struct_assign_field_of_let.dov:7:5: error: cannot assign to a field of immutable binding `p`
+  |
+7 |     p.x = 2;
+  |     ^
+  = hint: declare it with `var p` instead of `let p` to allow mutation

@@ -1,0 +1,3 @@
+import "a.dov";
+import   "b.dov" ;
+fn main(){}

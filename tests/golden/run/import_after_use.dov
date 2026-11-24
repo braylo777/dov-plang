@@ -1,0 +1,5 @@
+fn main() {
+    print(square(12));
+}
+
+import "../lib/mathlib.dov";

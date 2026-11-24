@@ -1,0 +1,15 @@
+enum Box {
+    Full(i64),
+    Empty
+}
+
+fn main() {
+    let v = 1;
+    match Box::Full(99) {
+        Box::Full(v) => {
+            print("inner ", v);
+        }
+        Box::Empty => {}
+    }
+    print("outer ", v);
+}

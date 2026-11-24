@@ -1,0 +1,5 @@
+tests/golden/fail/generic_param_compare.dov:2:12: error: cannot compare values of type `T`
+  |
+2 |     return a == b;
+  |            ^
+  = hint: `==` and `!=` work on i64, bool and str only; use `match` for enums

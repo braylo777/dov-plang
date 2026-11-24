@@ -1,0 +1,17 @@
+enum C {
+    R,
+    G
+}
+
+fn f(c: C) -> i64 {
+    match c {
+        C::R => {
+            return 1;
+        }
+        C::G => {
+            print(0);
+        }
+    }
+}
+
+fn main() {}

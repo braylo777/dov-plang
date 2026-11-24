@@ -1,0 +1,7 @@
+import "../lib/mathlib.dov";
+
+fn square(n: i64) -> i64 {
+    return n;
+}
+
+fn main() {}

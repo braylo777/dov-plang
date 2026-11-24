@@ -1,0 +1,5 @@
+fn main() {
+    let xs = [1, 2];
+    print(len(xs[0..2]));
+    print(len(xs[1..3]));
+}

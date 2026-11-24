@@ -1,0 +1,6 @@
+fn main() {
+    let r = ok_or(Some(5), "missing");
+    let n: Option<i64> = None;
+    let s = ok_or(n, "missing");
+    print(unwrap_ok(r), " ", unwrap_err(s));
+}

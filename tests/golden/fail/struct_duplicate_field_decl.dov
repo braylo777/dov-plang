@@ -1,0 +1,6 @@
+struct P {
+    x: i64,
+    x: bool
+}
+
+fn main() {}

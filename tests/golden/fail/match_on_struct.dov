@@ -1,0 +1,10 @@
+struct P {
+    x: i64
+}
+
+fn main() {
+    let p = P { x: 1 };
+    match p {
+        _ => {}
+    }
+}

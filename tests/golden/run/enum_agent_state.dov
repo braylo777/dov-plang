@@ -1,0 +1,37 @@
+enum State {
+    Idle,
+    Running(i64),
+    Done
+}
+
+agent Job {
+    var st = State::Idle;
+    on step() {
+        match st {
+            State::Idle => {
+                st = State::Running(1);
+                print("start");
+            }
+            State::Running(n) => {
+                if n == 2 {
+                    st = State::Done;
+                    print("finish");
+                } else {
+                    st = State::Running(n + 1);
+                    print("tick ", n);
+                }
+            }
+            State::Done => {
+                print("already done");
+            }
+        }
+    }
+}
+
+fn main() {
+    let j = spawn Job;
+    send j.step();
+    send j.step();
+    send j.step();
+    send j.step();
+}

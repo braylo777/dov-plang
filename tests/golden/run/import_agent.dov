@@ -1,0 +1,8 @@
+import "../lib/counter_agent.dov";
+
+fn main() {
+    let c = spawn Counter;
+    send c.add(2);
+    send c.add(40);
+    send c.show();
+}

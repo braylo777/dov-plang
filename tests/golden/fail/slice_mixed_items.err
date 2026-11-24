@@ -1,0 +1,5 @@
+tests/golden/fail/slice_mixed_items.dov:2:18: error: slice item 2: expected `i64`, found `str`
+  |
+2 |     let xs = [1, "two"];
+  |                  ^
+  = hint: all items of a slice have the same type

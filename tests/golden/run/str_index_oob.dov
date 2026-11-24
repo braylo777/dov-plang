@@ -1,0 +1,5 @@
+fn main() {
+    let s = "abc";
+    print(s[2]);
+    print(s[3]);
+}

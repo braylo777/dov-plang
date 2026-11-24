@@ -1,0 +1,5 @@
+tests/golden/fail/struct_no_such_field_read.dov:7:12: error: struct `P` has no field `y`
+  |
+7 |     print(p.y);
+  |            ^
+  = hint: did you mean `x`?

@@ -1,0 +1,14 @@
+fn f(stop: bool) {
+    defer print("a");
+    if stop {
+        return;
+    }
+    defer print("b");
+    print("end");
+}
+
+fn main() {
+    f(true);
+    print("--");
+    f(false);
+}

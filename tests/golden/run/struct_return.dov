@@ -1,0 +1,18 @@
+struct Point {
+    x: i64,
+    y: i64
+}
+
+fn make(x: i64, y: i64) -> Point {
+    return Point { x: x, y: y };
+}
+
+fn add(a: Point, b: Point) -> Point {
+    return Point { x: a.x + b.x, y: a.y + b.y };
+}
+
+fn main() {
+    let p = add(make(1, 2), make(30, 40));
+    print(p.x, " ", p.y);
+    print(make(7, 8).y);
+}

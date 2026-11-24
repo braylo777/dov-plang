@@ -1,0 +1,5 @@
+tests/golden/fail/import_missing_file.dov:1:1: error: cannot import "../lib/no_such_file.dov": No such file or directory (os error 2)
+  |
+1 | import "../lib/no_such_file.dov";
+  | ^
+  = hint: the path is relative to this file's folder; looked for `tests/golden/lib/no_such_file.dov`

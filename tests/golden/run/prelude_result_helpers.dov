@@ -1,0 +1,6 @@
+fn main() {
+    let a: Result<i64, str> = Ok(1);
+    let b: Result<i64, str> = Err("e");
+    print(is_ok(a), is_err(a), is_ok(b), is_err(b));
+    print(unwrap_ok(a), unwrap_err(b));
+}

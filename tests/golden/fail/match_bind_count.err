@@ -1,0 +1,5 @@
+tests/golden/fail/match_bind_count.dov:7:9: error: variant `A` has 2 value(s) but the pattern binds 1
+  |
+7 |         E::A(x) => {}
+  |         ^
+  = hint: bind every value, using `_` for the ones you do not need

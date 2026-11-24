@@ -1,0 +1,3 @@
+fn main() {
+    print(concat(to_str(-42), to_str(0)), " ", to_str(true), to_str(false), " ", to_str("s"), " ", to_str(-9223372036854775807 - 1));
+}

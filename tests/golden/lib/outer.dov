@@ -1,0 +1,5 @@
+import "inner/deep.dov";
+
+fn outer() -> i64 {
+    return deep() + 1;
+}

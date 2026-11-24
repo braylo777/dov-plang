@@ -1,0 +1,9 @@
+agent Counter {
+    var n = 0;
+    on add(k: i64) {
+        n = n + k;
+    }
+    on show() {
+        print("count=", n);
+    }
+}

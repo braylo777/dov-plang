@@ -1,0 +1,5 @@
+tests/golden/fail/defer_return.dov:3:9: error: `return` is not allowed inside `defer`
+  |
+3 |         return 1;
+  |         ^
+  = hint: a deferred block runs while the function is already leaving; remove the `return`

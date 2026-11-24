@@ -1,0 +1,5 @@
+tests/golden/fail/prelude_unwrap_type.dov:2:30: error: value 1 of `Some`: expected `str`, found `i64`
+  |
+2 |     let s: str = unwrap(Some(1));
+  |                              ^
+  = hint: there are no implicit conversions; change the value to the expected type

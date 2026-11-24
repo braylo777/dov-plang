@@ -1,0 +1,23 @@
+enum Color {
+    Red,
+    Green,
+    Blue
+}
+
+fn name(c: Color) -> str {
+    match c {
+        Color::Red => {
+            return "red";
+        }
+        Color::Green => {
+            return "green";
+        }
+        Color::Blue => {
+            return "blue";
+        }
+    }
+}
+
+fn main() {
+    print(name(Color::Red), " ", name(Color::Green), " ", name(Color::Blue));
+}

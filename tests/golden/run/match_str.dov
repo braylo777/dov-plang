@@ -1,0 +1,17 @@
+fn code(s: str) -> i64 {
+    match s {
+        "GET" => {
+            return 1;
+        }
+        "POST" => {
+            return 2;
+        }
+        _ => {
+            return 0;
+        }
+    }
+}
+
+fn main() {
+    print(code("GET"), code("POST"), code("PUT"), code(concat("PO", "ST")));
+}

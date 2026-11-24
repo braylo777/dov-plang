@@ -1,0 +1,19 @@
+enum Either<L, R> {
+    Left(L),
+    Right(R)
+}
+
+fn describe(e: Either<i64, str>) -> str {
+    match e {
+        Either::Left(n) => {
+            return concat("L", to_str(n));
+        }
+        Either::Right(s) => {
+            return concat("R", s);
+        }
+    }
+}
+
+fn main() {
+    print(describe(Either::Left(7)), " ", describe(Either::Right("ok")));
+}

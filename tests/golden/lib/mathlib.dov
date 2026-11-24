@@ -1,0 +1,8 @@
+// Small math helpers for the import tests.
+fn square(n: i64) -> i64 {
+    return n * n;
+}
+
+fn cube(n: i64) -> i64 {
+    return n * square(n);
+}

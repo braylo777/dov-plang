@@ -1,0 +1,4 @@
+fn main() {
+    let r: Result<i64, str> = Err("boom");
+    print(unwrap_ok(r));
+}

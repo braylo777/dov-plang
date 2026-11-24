@@ -1,0 +1,28 @@
+fn digit(c: i64) -> Result<i64, str> {
+    if c >= 48 && c <= 57 {
+        return Ok(c - 48);
+    }
+    return Err(concat("not a digit: ", char_of(c)));
+}
+
+fn parse(s: str) -> Result<i64, str> {
+    var n = 0;
+    var i = 0;
+    while i < len(s) {
+        match digit(s[i]) {
+            Ok(d) => {
+                n = n * 10 + d;
+            }
+            Err(e) => {
+                return Err(e);
+            }
+        }
+        i = i + 1;
+    }
+    return Ok(n);
+}
+
+fn main() {
+    print(unwrap_ok(parse("1234")) + 1);
+    print(unwrap_err(parse("12x4")));
+}

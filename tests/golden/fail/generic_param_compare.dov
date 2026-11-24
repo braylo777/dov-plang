@@ -1,0 +1,5 @@
+fn eq<T>(a: T, b: T) -> bool {
+    return a == b;
+}
+
+fn main() {}

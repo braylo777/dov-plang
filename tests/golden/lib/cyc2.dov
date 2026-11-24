@@ -1,0 +1,5 @@
+import "cyc1.dov";
+
+fn two() -> i64 {
+    return one() + one();
+}

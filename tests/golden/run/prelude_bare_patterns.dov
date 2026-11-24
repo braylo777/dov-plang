@@ -1,0 +1,14 @@
+fn show(r: Result<i64, str>) -> str {
+    match r {
+        Ok(n) => {
+            return to_str(n);
+        }
+        Err(e) => {
+            return e;
+        }
+    }
+}
+
+fn main() {
+    print(show(Ok(3)), show(Err("!")));
+}

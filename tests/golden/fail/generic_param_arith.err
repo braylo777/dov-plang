@@ -1,0 +1,5 @@
+tests/golden/fail/generic_param_arith.dov:2:12: error: left operand: expected `i64`, found `T`
+  |
+2 |     return a + b;
+  |            ^
+  = hint: arithmetic works on i64 only; join strings with `concat(a, b)`

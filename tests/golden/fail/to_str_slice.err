@@ -1,0 +1,5 @@
+tests/golden/fail/to_str_slice.dov:2:18: error: `to_str` cannot convert a value of type `[i64]`
+  |
+2 |     print(to_str([1]));
+  |                  ^
+  = hint: `to_str` takes i64, bool or str

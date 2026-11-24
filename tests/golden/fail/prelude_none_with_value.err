@@ -1,0 +1,5 @@
+tests/golden/fail/prelude_none_with_value.dov:2:26: error: variant `None` takes 0 value(s) but got 1
+  |
+2 |     let x: Option<i64> = None(1);
+  |                          ^
+  = hint: write `None` without parentheses

@@ -1,0 +1,5 @@
+tests/golden/fail/struct_unknown.dov:2:13: error: unknown struct `Pointt`
+  |
+2 |     let p = Pointt { x: 1 };
+  |             ^
+  = hint: did you mean `Point`?

@@ -1,0 +1,8 @@
+fn main() {
+    defer print("one");
+    defer print("two");
+    defer {
+        print("three");
+    }
+    print("body");
+}

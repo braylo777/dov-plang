@@ -1,0 +1,28 @@
+struct Stack<T> {
+    items: [T]
+}
+
+fn push<T>(s: Stack<T>, x: T) -> Stack<T> {
+    return Stack { items: append(s.items, x) };
+}
+
+fn top<T>(s: Stack<T>) -> Option<T> {
+    if len(s.items) == 0 {
+        return None;
+    }
+    return Some(s.items[len(s.items) - 1]);
+}
+
+fn pop<T>(s: Stack<T>) -> Stack<T> {
+    return Stack { items: s.items[0..len(s.items) - 1] };
+}
+
+fn main() {
+    var s: Stack<str> = Stack { items: [] };
+    s = push(s, "a");
+    s = push(s, "b");
+    s = push(s, "c");
+    print(unwrap(top(s)), len(s.items));
+    s = pop(s);
+    print(unwrap(top(s)), len(s.items));
+}

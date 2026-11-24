@@ -1,0 +1,5 @@
+tests/golden/fail/struct_field_type.dov:6:20: error: field `P.x`: expected `i64`, found `str`
+  |
+6 |     let p = P { x: "one" };
+  |                    ^
+  = hint: there are no implicit conversions; change the value to the expected type

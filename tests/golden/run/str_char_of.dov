@@ -1,0 +1,9 @@
+fn main() {
+    var s = "";
+    var c = 97;
+    while c < 102 {
+        s = concat(s, char_of(c));
+        c = c + 1;
+    }
+    print(s, " ", len(char_of(0)));
+}

@@ -4,6 +4,7 @@
 //!   compare stdout with `NAME.stdout`. If `NAME.stderr` exists the program must exit 101 (panic)
 //!   with exactly that stderr. When the C compiler supports it, the same C is also built with
 //!   `-fsanitize=address,undefined` and must give the same result. The source must be `dovc fmt` clean.
+//! - `lib/`: files that run and fail cases import (not cases themselves).
 //! - `fail/NAME.dov`: `dovc check` must exit 1 with exactly the stderr in `NAME.err`
 //!   (position, source line, caret, hint).
 //! - `fmt/NAME.dov`: `dovc fmt` output must equal `NAME.fmt`, and formatting that is a no-op.
@@ -113,13 +114,15 @@ fn build_and_run(dir: &Path, tag: &str, extra: &[&str]) -> Output {
 }
 
 fn run_case(name: &str) {
-    let src = read(&golden("run", name, "dov"));
+    let path = golden("run", name, "dov");
+    let src = read(&path);
     assert_eq!(
         dovc::fmt::format(&src).unwrap(),
         src,
         "run/{name}.dov is not `dovc fmt` clean"
     );
-    let c = dovc::compile_to_c(&src).unwrap_or_else(|d| panic!("{}", d.render(name, &src)));
+    // Imports resolve relative to the file, so compile it by its path.
+    let c = dovc::compile_file(&src, path.to_str().unwrap()).unwrap_or_else(|e| panic!("{e}"));
     let dir = dovc::scratch_dir().unwrap();
     std::fs::write(dir.join("dov_rt.h"), dovc::RUNTIME_H).unwrap();
     std::fs::write(dir.join("dov_rt.c"), dovc::RUNTIME_C).unwrap();
@@ -170,7 +173,8 @@ fn fail_case(name: &str) {
     // Shape every diagnostic must have: position, source line, caret, hint.
     let first = stderr.lines().next().unwrap_or("");
     assert!(
-        first.starts_with(&format!("{rel}:")) && first.contains(": error: "),
+        // The error may sit in a file the case imports (from tests/golden/lib).
+        first.starts_with("tests/golden/") && first.contains(": error: "),
         "{stderr}"
     );
     assert!(

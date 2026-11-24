@@ -1,0 +1,5 @@
+tests/golden/fail/generic_empty_slice.dov:2:15: error: cannot infer the full type of this expression (`[_]`)
+  |
+2 |     print(len([]));
+  |               ^
+  = hint: add a type annotation, e.g. `let x: Option<i64> = None;` or `let xs: [str] = [];`

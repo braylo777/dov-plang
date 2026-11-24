@@ -1,0 +1,3 @@
+fn broken() -> i64 {
+    return "not a number";
+}

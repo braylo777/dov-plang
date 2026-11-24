@@ -1,0 +1,6 @@
+struct Node {
+    v: i64,
+    next: Node
+}
+
+fn main() {}

@@ -1,0 +1,5 @@
+tests/golden/fail/prelude_some_no_value.dov:2:26: error: variant `Some` takes 1 value(s) but got 0
+  |
+2 |     let x: Option<i64> = Some();
+  |                          ^
+  = hint: write `Some(...)` with 1 value(s)

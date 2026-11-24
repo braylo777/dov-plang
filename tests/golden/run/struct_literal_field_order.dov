@@ -1,0 +1,10 @@
+struct P {
+    a: i64,
+    b: str,
+    c: bool
+}
+
+fn main() {
+    let p = P { c: true, a: 7, b: "x" };
+    print(p.a, p.b, p.c);
+}

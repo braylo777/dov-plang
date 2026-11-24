@@ -1,0 +1,22 @@
+struct Stats {
+    count: i64,
+    total: i64
+}
+
+agent Acc {
+    var s = Stats { count: 0, total: 0 };
+    on add(n: i64) {
+        s.count = s.count + 1;
+        s.total = s.total + n;
+    }
+    on report() {
+        print(s.count, " values, total ", s.total);
+    }
+}
+
+fn main() {
+    let a = spawn Acc;
+    send a.add(5);
+    send a.add(7);
+    send a.report();
+}

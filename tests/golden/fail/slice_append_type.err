@@ -1,0 +1,5 @@
+tests/golden/fail/slice_append_type.dov:3:25: error: argument 2 of `append`: expected `i64`, found `bool`
+  |
+3 |     let ys = append(xs, true);
+  |                         ^
+  = hint: there are no implicit conversions; change the value to the expected type

@@ -1,0 +1,5 @@
+tests/golden/fail/struct_field_of_int.dov:3:12: error: a value of type `i64` has no fields
+  |
+3 |     print(n.x);
+  |            ^
+  = hint: only struct values have fields; use `len(x)` for the length of a str or slice

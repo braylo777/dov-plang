@@ -1,0 +1,27 @@
+enum Op {
+    Add(i64),
+    Sub(i64),
+    Reset
+}
+
+fn main() {
+    var acc = 0;
+    let ops = [Op::Add(5), Op::Add(10), Op::Sub(3), Op::Reset, Op::Add(1)];
+    var i = 0;
+    while i < len(ops) {
+        match ops[i] {
+            Op::Add(n) => {
+                acc = acc + n;
+            }
+            Op::Sub(n) => {
+                acc = acc - n;
+            }
+            Op::Reset => {
+                print("reset at ", acc);
+                acc = 0;
+            }
+        }
+        i = i + 1;
+    }
+    print(acc);
+}

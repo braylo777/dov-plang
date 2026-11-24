@@ -1,0 +1,7 @@
+enum E<T> {
+    A(T, i64),
+    B,
+    C(str)
+}
+
+fn main() {}

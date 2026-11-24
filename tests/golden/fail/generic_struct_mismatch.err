@@ -1,0 +1,5 @@
+tests/golden/fail/generic_struct_mismatch.dov:6:32: error: field `Box.v`: expected `i64`, found `bool`
+  |
+6 |     let b: Box<i64> = Box { v: true };
+  |                                ^
+  = hint: there are no implicit conversions; change the value to the expected type

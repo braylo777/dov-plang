@@ -1,0 +1,23 @@
+agent Cache {
+    var last: Option<i64> = None;
+    on put(n: i64) {
+        last = Some(n);
+    }
+    on show() {
+        match last {
+            Some(n) => {
+                print("last=", n);
+            }
+            None => {
+                print("empty");
+            }
+        }
+    }
+}
+
+fn main() {
+    let c = spawn Cache;
+    send c.show();
+    send c.put(4);
+    send c.show();
+}

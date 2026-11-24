@@ -1,0 +1,6 @@
+import "../lib/a.dov";
+import "../lib/b.dov";
+
+fn main() {
+    print(from_a(), " / ", from_b(), " / ", greet("main"));
+}

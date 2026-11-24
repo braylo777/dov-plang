@@ -1,0 +1,8 @@
+fn main() {
+    var total = 0;
+    defer {
+        let t = total * 2;
+        print("double ", t);
+    }
+    total = 21;
+}

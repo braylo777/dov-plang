@@ -1,0 +1,5 @@
+tests/golden/fail/match_duplicate_variant.dov:9:9: error: unreachable pattern: `R` is already matched above
+  |
+9 |         C::R => {}
+  |         ^
+  = hint: remove this arm or merge it with the earlier one

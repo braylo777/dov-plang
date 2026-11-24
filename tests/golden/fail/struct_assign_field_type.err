@@ -1,0 +1,5 @@
+tests/golden/fail/struct_assign_field_type.dov:7:11: error: assignment to `p.x`: expected `i64`, found `bool`
+  |
+7 |     p.x = true;
+  |           ^
+  = hint: there are no implicit conversions; change the value to the expected type

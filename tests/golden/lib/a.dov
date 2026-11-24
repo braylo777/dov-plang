@@ -1,0 +1,5 @@
+import "common.dov";
+
+fn from_a() -> str {
+    return greet("a");
+}

@@ -1,0 +1,20 @@
+enum Ev {
+    Click(i64, i64),
+    Key(str)
+}
+
+fn main() {
+    let es = [Ev::Click(1, 2), Ev::Key("a"), Ev::Click(5, 6)];
+    var i = 0;
+    while i < len(es) {
+        match es[i] {
+            Ev::Click(_, y) => {
+                print("y=", y);
+            }
+            Ev::Key(_) => {
+                print("key");
+            }
+        }
+        i = i + 1;
+    }
+}

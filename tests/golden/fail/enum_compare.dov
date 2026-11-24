@@ -1,0 +1,7 @@
+enum C {
+    R
+}
+
+fn main() {
+    print(C::R == C::R);
+}
