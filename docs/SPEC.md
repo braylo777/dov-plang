@@ -575,6 +575,8 @@ fn copy(src: str) -> bool {
 - Several defers run in reverse order (last registered first). A defer that was not reached is not
   run. A defer inside a loop body runs at the end of each iteration.
 - On `return e;` the value `e` is computed first, then the defers run, then the function returns.
+- A deferred statement is evaluated when it runs, not when the `defer` line is reached (unlike Go):
+  `defer print(i);` prints the value `i` has at block exit.
 - A deferred block sees the names that were visible where it was written, even when it runs from a
   deeper block that shadows them. It may assign `var` bindings. It cannot contain `return`.
 - A panic stops the program at once; defers do not run.
