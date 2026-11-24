@@ -1,0 +1,15 @@
+fn main() {
+    var xs: [i64] = [];
+    var i = 0;
+    while i < 2000000 {
+        xs = append(xs, i % 1000);
+        i = i + 1;
+    }
+    var sum = 0;
+    i = 0;
+    while i < len(xs) {
+        sum = sum + xs[i];
+        i = i + 1;
+    }
+    print(len(xs), " ", sum);
+}
