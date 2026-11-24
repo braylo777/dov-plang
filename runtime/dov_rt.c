@@ -58,35 +58,6 @@ void dov_run(void) {
     }
 }
 
-int64_t dov_add(int64_t a, int64_t b, int32_t line) {
-    int64_t r;
-    if (__builtin_add_overflow(a, b, &r)) dov_panic("integer overflow in `+`", line);
-    return r;
-}
-int64_t dov_sub(int64_t a, int64_t b, int32_t line) {
-    int64_t r;
-    if (__builtin_sub_overflow(a, b, &r)) dov_panic("integer overflow in `-`", line);
-    return r;
-}
-int64_t dov_mul(int64_t a, int64_t b, int32_t line) {
-    int64_t r;
-    if (__builtin_mul_overflow(a, b, &r)) dov_panic("integer overflow in `*`", line);
-    return r;
-}
-int64_t dov_div(int64_t a, int64_t b, int32_t line) {
-    if (b == 0) dov_panic("division by zero", line);
-    if (a == INT64_MIN && b == -1) dov_panic("integer overflow in `/`", line);
-    return a / b;
-}
-int64_t dov_rem(int64_t a, int64_t b, int32_t line) {
-    if (b == 0) dov_panic("remainder by zero", line);
-    if (a == INT64_MIN && b == -1) return 0;
-    return a % b;
-}
-int64_t dov_neg(int64_t a, int32_t line) {
-    if (a == INT64_MIN) dov_panic("integer overflow in unary `-`", line);
-    return -a;
-}
 
 /* ---------- strings ---------- */
 
@@ -100,11 +71,6 @@ static dov_str str_new(const char *a, int64_t na, const char *b, int64_t nb) {
 
 bool dov_str_eq(dov_str a, dov_str b) {
     return a.len == b.len && (a.len == 0 || memcmp(a.p, b.p, (size_t)a.len) == 0);
-}
-
-int64_t dov_str_at(dov_str s, int64_t i, int32_t line) {
-    if (i < 0 || i >= s.len) dov_panic("string index out of bounds", line);
-    return (int64_t)(unsigned char)s.p[i];
 }
 
 dov_str dov_str_range(dov_str s, int64_t a, int64_t b, int32_t line) {
@@ -141,12 +107,6 @@ dov_str dov_str_from_c(const char *p) {
 
 /* ---------- slices ---------- */
 
-struct dov_buf {
-    int64_t used; /* items written; views never reach past this */
-    int64_t cap;
-    max_align_t data[]; /* items follow, suitably aligned */
-};
-
 static dov_buf *buf_new(int64_t cap, size_t size) {
     if (cap < 4) cap = 4;
     if ((uint64_t)cap > (uint64_t)(SIZE_MAX / 2) / (size ? size : 1)) dov_panic("slice too long", 0);
@@ -164,11 +124,6 @@ dov_slice dov_slice_lit(int64_t n, size_t size, const void *src) {
     memcpy(b->data, src, (size_t)n * size);
     b->used = n;
     return (dov_slice){b, 0, n};
-}
-
-const void *dov_index(dov_slice s, int64_t i, size_t size, int32_t line) {
-    if (i < 0 || i >= s.len) dov_panic("slice index out of bounds", line);
-    return items(s, size) + (size_t)i * size;
 }
 
 dov_slice dov_range(dov_slice s, int64_t a, int64_t b, int32_t line) {

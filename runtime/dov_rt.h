@@ -28,7 +28,11 @@ typedef struct {
 
 /* A slice `[T]`: `len` items starting at item `off` of an immutable heap buffer.
  * `append` may extend the buffer in place, but only past every existing view. */
-typedef struct dov_buf dov_buf;
+typedef struct dov_buf {
+    int64_t used;       /* items written; views never reach past this */
+    int64_t cap;
+    max_align_t data[]; /* items follow, suitably aligned */
+} dov_buf;
 typedef struct {
     dov_buf *buf;
     int64_t off;
@@ -45,15 +49,48 @@ void dov_run(void);
 _Noreturn void dov_panic(const char *msg, int32_t line);
 _Noreturn void dov_panic_str(dov_str msg, int32_t line);
 
-int64_t dov_add(int64_t a, int64_t b, int32_t line);
-int64_t dov_sub(int64_t a, int64_t b, int32_t line);
-int64_t dov_mul(int64_t a, int64_t b, int32_t line);
-int64_t dov_div(int64_t a, int64_t b, int32_t line);
-int64_t dov_rem(int64_t a, int64_t b, int32_t line);
-int64_t dov_neg(int64_t a, int32_t line);
+
+/* Checked arithmetic and bounds checks are inline so the C compiler can optimize them. */
+static inline int64_t dov_add(int64_t a, int64_t b, int32_t line) {
+    int64_t r;
+    if (__builtin_add_overflow(a, b, &r)) dov_panic("integer overflow in `+`", line);
+    return r;
+}
+static inline int64_t dov_sub(int64_t a, int64_t b, int32_t line) {
+    int64_t r;
+    if (__builtin_sub_overflow(a, b, &r)) dov_panic("integer overflow in `-`", line);
+    return r;
+}
+static inline int64_t dov_mul(int64_t a, int64_t b, int32_t line) {
+    int64_t r;
+    if (__builtin_mul_overflow(a, b, &r)) dov_panic("integer overflow in `*`", line);
+    return r;
+}
+static inline int64_t dov_div(int64_t a, int64_t b, int32_t line) {
+    if (b == 0) dov_panic("division by zero", line);
+    if (a == INT64_MIN && b == -1) dov_panic("integer overflow in `/`", line);
+    return a / b;
+}
+static inline int64_t dov_rem(int64_t a, int64_t b, int32_t line) {
+    if (b == 0) dov_panic("remainder by zero", line);
+    if (b == -1) return 0; /* also avoids INT64_MIN % -1, which traps in C */
+    return a % b;
+}
+static inline int64_t dov_neg(int64_t a, int32_t line) {
+    if (a == INT64_MIN) dov_panic("integer overflow in unary `-`", line);
+    return -a;
+}
+static inline int64_t dov_str_at(dov_str s, int64_t i, int32_t line) {
+    if (i < 0 || i >= s.len) dov_panic("string index out of bounds", line);
+    return (int64_t)(unsigned char)s.p[i];
+}
+/* Address of item `i` of a slice (bounds-checked). */
+static inline const void *dov_index(dov_slice s, int64_t i, size_t size, int32_t line) {
+    if (i < 0 || i >= s.len) dov_panic("slice index out of bounds", line);
+    return (const char *)s.buf->data + (size_t)(s.off + i) * size;
+}
 
 bool dov_str_eq(dov_str a, dov_str b);
-int64_t dov_str_at(dov_str s, int64_t i, int32_t line);
 dov_str dov_str_range(dov_str s, int64_t a, int64_t b, int32_t line);
 dov_str dov_str_concat(dov_str a, dov_str b);
 dov_str dov_i64_to_str(int64_t v);
@@ -62,7 +99,6 @@ dov_str dov_char_of(int64_t c, int32_t line);
 dov_str dov_str_from_c(const char *p);
 
 dov_slice dov_slice_lit(int64_t n, size_t size, const void *items);
-const void *dov_index(dov_slice s, int64_t i, size_t size, int32_t line);
 dov_slice dov_range(dov_slice s, int64_t a, int64_t b, int32_t line);
 dov_slice dov_append(dov_slice s, size_t size, const void *item);
 dov_slice dov_concat(dov_slice a, dov_slice b, size_t size);
