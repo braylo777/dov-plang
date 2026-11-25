@@ -27,7 +27,7 @@ fn main() {
 }
 ```
 
-**Try it in the browser:** [dov-playground.pages.dev](https://dov-playground.pages.dev/) — the real
+**Try it in the browser:** [dov.braylo.si](https://dov.braylo.si/) — the real
 `dovc` front end and C generator compiled to WebAssembly (6 presets; shows diagnostics and the generated C).
 
 ## Quick start
